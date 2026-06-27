@@ -4,4 +4,57 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id             Int      @id @default(autoincrement())
+  nome           String
+  cpf            String   @unique
+  telefone       String
+  email          String
+  dataNascimento DateTime
+  vendas         Venda[]
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+}
+
+model PecaRoupa {
+  id                Int         @id @default(autoincrement())
+  denominacao       String
+  categoria         String      // BIQUINI, CAMISA, CAMISETA, CALCA, CALCINHA, CUECA, MOLETOM, SHORT
+  preco             Float
+  tamanho           String      // PP, P, M, G, GG, XG
+  quantidadeEstoque Int         @default(0)
+  itensVenda        ItemVenda[]
+  criadoEm          DateTime    @default(now())
+  atualizadoEm      DateTime    @updatedAt
+
+  @@unique([denominacao, tamanho])
+}
+
+model Venda {
+  id             Int         @id @default(autoincrement())
+  dataVenda      DateTime
+  formaPagamento String      // CARTAO_CREDITO, PIX
+  status         String      @default("ABERTA") // ABERTA, FINALIZADA
+  valorTotal     Float       @default(0)
+  cliente        Cliente     @relation(fields: [clienteId], references: [id])
+  clienteId      Int
+  itens          ItemVenda[]
+  criadoEm       DateTime    @default(now())
+  atualizadoEm   DateTime    @updatedAt
+}
+
+model ItemVenda {
+  id                 Int       @id @default(autoincrement())
+  venda              Venda     @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  vendaId            Int
+  pecaRoupa          PecaRoupa @relation(fields: [pecaRoupaId], references: [id])
+  pecaRoupaId        Int
+  quantidade         Int
+  ordem              Int
+  percentualDesconto Float     @default(0)
+  valorItem          Float     @default(0)
+  criadoEm          DateTime   @default(now())
 }

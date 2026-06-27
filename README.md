@@ -43,18 +43,33 @@ cp .env.example .env
 | `npm run seed`    | Popula o banco com dados iniciais   |
 | `npm run studio`  | Abre o Prisma Studio                |
 
+## Banco de dados
+
+O projeto usa **SQLite** gerenciado pelo **Prisma 6**. O schema define quatro entidades:
+
+| Modelo | Descrição |
+| --- | --- |
+| `Cliente` | Dados pessoais do cliente (CPF único) |
+| `PecaRoupa` | Catálogo de peças com estoque (`denominacao + tamanho` únicos) |
+| `Venda` | Cabeçalho da venda vinculada a um cliente |
+| `ItemVenda` | Linha de cada peça dentro de uma venda (cascade delete) |
+
+Os campos de domínio enumerado (`categoria`, `tamanho`, `formaPagamento`, `status`) são `String` no banco — SQLite não suporta enum nativo — e validados na camada de aplicação via `src/utils/enums.ts`.
+
 ## Estrutura de pastas
 
 ```text
 ├── prisma/
-│   └── schema.prisma        # modelos do banco de dados
+│   ├── schema.prisma        # modelos do banco de dados
+│   └── migrations/          # histórico de migrations SQL
 ├── src/
 │   ├── server.ts            # ponto de entrada da aplicação
 │   ├── prismaClient.ts      # instância única do PrismaClient
 │   ├── routes/              # definição de rotas
 │   ├── controllers/         # lógica de requisição/resposta
 │   ├── services/            # regras de negócio
-│   └── utils/               # funções utilitárias
+│   └── utils/
+│       └── enums.ts         # constantes e tipos de domínio
 ├── views/
 │   ├── layout.ejs           # layout base compartilhado
 │   ├── index.ejs            # página inicial
@@ -66,11 +81,6 @@ cp .env.example .env
 ├── public/
 │   ├── css/
 │   └── js/
-├── prisma.config.ts         # configuração do Prisma 7 (adapter libsql)
 ├── tsconfig.json
 └── .env.example
 ```
-
-## Nota sobre o Prisma 7
-
-O Prisma 7 removeu o campo `url` do `schema.prisma`. A URL de conexão é configurada em `prisma.config.ts` via `defineConfig`, e o `PrismaClient` recebe o adapter `PrismaLibSQL` diretamente no construtor.
