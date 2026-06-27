@@ -1,0 +1,4 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: sans-serif; padding: 1rem; }
+nav { margin-bottom: 1rem; }
+nav a { margin-right: 1rem; text-decoration: none; color: #333; }
