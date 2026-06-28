@@ -109,6 +109,19 @@ export async function adicionarItem({
       data: { quantidadeEstoque: { decrement: quantidade } },
     });
 
+    const itemExistente = await tx.itemVenda.findFirst({ where: { vendaId, pecaRoupaId } });
+
+    if (itemExistente !== null) {
+      await tx.itemVenda.update({
+        where: { id: itemExistente.id },
+        data: { quantidade: { increment: quantidade } },
+      });
+
+      await _recalcularVenda(tx, vendaId);
+
+      return tx.itemVenda.findUniqueOrThrow({ where: { id: itemExistente.id } });
+    }
+
     const totalItens = await tx.itemVenda.count({ where: { vendaId } });
 
     const item = await tx.itemVenda.create({
