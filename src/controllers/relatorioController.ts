@@ -9,7 +9,12 @@ import {
   obterVendasFinalizadas,
 } from "../services/relatorioService.js";
 
-const PAGE_SIZE = 10;
+const TAMANHOS_PAGINA_VALIDOS = [5, 10, 20, 50, 100] as const;
+
+function parsePorPagina(raw: unknown): number {
+  const n = Number(raw);
+  return (TAMANHOS_PAGINA_VALIDOS as readonly number[]).includes(n) ? n : 10;
+}
 
 function parsePagina(raw: unknown): number {
   const n = Number(raw);
@@ -43,6 +48,7 @@ function queryStr(raw: unknown): string {
 export async function pecasPorCategoria(req: Request, res: Response): Promise<void> {
   const categoriaQuery = req.query["categoria"];
   const pagina = parsePagina(req.query["pagina"]);
+  const porPagina = parsePorPagina(req.query["porPagina"]);
 
   const categoriaSelecionada =
     typeof categoriaQuery === "string" && isCategoriaValida(categoriaQuery)
@@ -50,13 +56,15 @@ export async function pecasPorCategoria(req: Request, res: Response): Promise<vo
       : null;
 
   let pecas: Awaited<ReturnType<typeof obterPecasPorCategoria>>["itens"] = [];
+  let totalRegistros = 0;
   let totalPaginas = 1;
 
   if (categoriaSelecionada) {
-    const skip = (pagina - 1) * PAGE_SIZE;
-    const resultado = await obterPecasPorCategoria(categoriaSelecionada, skip, PAGE_SIZE);
+    const skip = (pagina - 1) * porPagina;
+    const resultado = await obterPecasPorCategoria(categoriaSelecionada, skip, porPagina);
     pecas = resultado.itens;
-    totalPaginas = Math.ceil(resultado.total / PAGE_SIZE) || 1;
+    totalRegistros = resultado.total;
+    totalPaginas = Math.ceil(totalRegistros / porPagina) || 1;
   }
 
   res.render("relatorios/pecas-por-categoria", {
@@ -64,63 +72,77 @@ export async function pecasPorCategoria(req: Request, res: Response): Promise<vo
     CATEGORIAS,
     categoriaSelecionada,
     pecas,
-    pagina,
-    totalPaginas,
+    paginacao: {
+      paginaAtual: pagina,
+      totalPaginas,
+      totalRegistros,
+      porPagina,
+    },
   });
 }
 
 export async function vendasFinalizadas(req: Request, res: Response): Promise<void> {
   const pagina = parsePagina(req.query["pagina"]);
+  const porPagina = parsePorPagina(req.query["porPagina"]);
   const filtro = {
     dataInicio: queryStr(req.query["dataInicio"]),
     dataFim: queryStr(req.query["dataFim"]),
   };
 
-  const skip = (pagina - 1) * PAGE_SIZE;
+  const skip = (pagina - 1) * porPagina;
   const { itens: vendas, total } = await obterVendasFinalizadas(
     {
       dataInicio: parseDataInicio(filtro.dataInicio),
       dataFim: parseDataFim(filtro.dataFim),
     },
     skip,
-    PAGE_SIZE
+    porPagina
   );
 
-  const totalPaginas = Math.ceil(total / PAGE_SIZE) || 1;
+  const totalPaginas = Math.ceil(total / porPagina) || 1;
 
   res.render("relatorios/vendas-finalizadas", {
     title: "Relatório de Vendas Finalizadas",
     vendas,
-    pagina,
-    totalPaginas,
+    paginacao: {
+      paginaAtual: pagina,
+      totalPaginas,
+      totalRegistros: total,
+      porPagina,
+    },
     filtro,
   });
 }
 
 export async function pecasMaisVendidas(req: Request, res: Response): Promise<void> {
   const pagina = parsePagina(req.query["pagina"]);
+  const porPagina = parsePorPagina(req.query["porPagina"]);
   const filtro = {
     dataInicio: queryStr(req.query["dataInicio"]),
     dataFim: queryStr(req.query["dataFim"]),
   };
 
-  const skip = (pagina - 1) * PAGE_SIZE;
+  const skip = (pagina - 1) * porPagina;
   const { itens: pecas, total } = await obterPecasMaisVendidas(
     {
       dataInicio: parseDataInicio(filtro.dataInicio),
       dataFim: parseDataFim(filtro.dataFim),
     },
     skip,
-    PAGE_SIZE
+    porPagina
   );
 
-  const totalPaginas = Math.ceil(total / PAGE_SIZE) || 1;
+  const totalPaginas = Math.ceil(total / porPagina) || 1;
 
   res.render("relatorios/pecas-mais-vendidas", {
     title: "Relatório de Peças Mais Vendidas",
     pecas,
-    pagina,
-    totalPaginas,
+    paginacao: {
+      paginaAtual: pagina,
+      totalPaginas,
+      totalRegistros: total,
+      porPagina,
+    },
     filtro,
   });
 }

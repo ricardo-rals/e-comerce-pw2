@@ -8,9 +8,18 @@ import { CATEGORIAS, TAMANHOS } from "../utils/enums.js";
 
 const enumsView = { CATEGORIAS, TAMANHOS };
 
+const TAMANHOS_PAGINA_VALIDOS = [5, 10, 20, 50, 100] as const;
+
+function parsePorPagina(raw: unknown): number {
+  const n = Number(raw);
+  return (TAMANHOS_PAGINA_VALIDOS as readonly number[]).includes(n) ? n : 10;
+}
+
 export async function listar(req: Request, res: Response): Promise<void> {
   const busca = typeof req.query["busca"] === "string" ? req.query["busca"].trim() : "";
   const categoria = typeof req.query["categoria"] === "string" ? req.query["categoria"].trim() : "";
+  const pagina = Math.max(1, Number(req.query["pagina"]) || 1);
+  const porPagina = parsePorPagina(req.query["porPagina"]);
 
   const where: Prisma.PecaRoupaWhereInput = {};
 
@@ -22,10 +31,17 @@ export async function listar(req: Request, res: Response): Promise<void> {
     where.categoria = categoria;
   }
 
-  const pecas = await prisma.pecaRoupa.findMany({
-    where,
-    orderBy: [{ denominacao: "asc" }, { tamanho: "asc" }],
-  });
+  const skip = (pagina - 1) * porPagina;
+
+  const [pecas, totalRegistros] = await Promise.all([
+    prisma.pecaRoupa.findMany({
+      where,
+      orderBy: [{ denominacao: "asc" }, { tamanho: "asc" }],
+      skip,
+      take: porPagina,
+    }),
+    prisma.pecaRoupa.count({ where }),
+  ]);
 
   res.render("pecas/index", {
     title: "Peças de Roupa",
@@ -35,6 +51,12 @@ export async function listar(req: Request, res: Response): Promise<void> {
     filtro: {
       busca,
       categoria,
+    },
+    paginacao: {
+      paginaAtual: pagina,
+      totalPaginas: Math.ceil(totalRegistros / porPagina) || 1,
+      totalRegistros,
+      porPagina,
     },
   });
 }

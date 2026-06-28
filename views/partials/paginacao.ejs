@@ -1,25 +1,43 @@
 <%
   function pagUrl(p) {
     const q = new URLSearchParams();
-    Object.entries(filtroParams).forEach(([k, v]) => {
-      if (v) q.set(k, v);
+    Object.entries(queryBase).forEach(([k, v]) => {
+      if (v) q.set(k, String(v));
     });
+    q.set('porPagina', String(paginacao.porPagina));
     q.set('pagina', String(p));
-    return basePath + '?' + q.toString();
+    return '?' + q.toString();
   }
 %>
-<% if (totalPaginas > 1) { %>
-  <div class="paginacao">
-    <% if (pagina > 1) { %>
-      <a href="<%= pagUrl(pagina - 1) %>" class="btn btn-secundario">← Anterior</a>
+<div class="paginacao">
+  <div class="paginacao-tamanho">
+    <label for="sel-por-pagina">Itens por página</label>
+    <select id="sel-por-pagina"
+            onchange="var q=new URLSearchParams(window.location.search);q.set('porPagina',this.value);q.set('pagina','1');window.location.href='?'+q.toString()">
+      <% for (const t of [5, 10, 20, 50, 100]) { %>
+        <option value="<%= t %>"<%= paginacao.porPagina === t ? ' selected' : '' %>><%= t %> por página</option>
+      <% } %>
+    </select>
+  </div>
+
+  <% if (paginacao.totalPaginas > 1) { %>
+    <% if (paginacao.paginaAtual > 1) { %>
+      <a href="<%= pagUrl(paginacao.paginaAtual - 1) %>" class="btn btn-secundario">← Anterior</a>
     <% } else { %>
       <span class="paginacao-desabilitado">← Anterior</span>
     <% } %>
-    <span class="paginacao-info">Página <%= pagina %> de <%= totalPaginas %></span>
-    <% if (pagina < totalPaginas) { %>
-      <a href="<%= pagUrl(pagina + 1) %>" class="btn btn-secundario">Próximo →</a>
+  <% } %>
+
+  <span class="paginacao-info">
+    Página <%= paginacao.paginaAtual %> de <%= paginacao.totalPaginas %>
+    (<%= paginacao.totalRegistros %> registros)
+  </span>
+
+  <% if (paginacao.totalPaginas > 1) { %>
+    <% if (paginacao.paginaAtual < paginacao.totalPaginas) { %>
+      <a href="<%= pagUrl(paginacao.paginaAtual + 1) %>" class="btn btn-secundario">Próximo →</a>
     <% } else { %>
       <span class="paginacao-desabilitado">Próximo →</span>
     <% } %>
-  </div>
-<% } %>
+  <% } %>
+</div>

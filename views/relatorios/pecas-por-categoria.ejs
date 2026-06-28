@@ -54,9 +54,7 @@
   </div>
 
   <%- include('../partials/paginacao', {
-    pagina,
-    totalPaginas,
-    basePath: '/relatorios/pecas-por-categoria',
-    filtroParams: { categoria: categoriaSelecionada },
+    paginacao,
+    queryBase: { categoria: categoriaSelecionada },
   }) %>
 <% } %>

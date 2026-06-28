@@ -50,9 +50,4 @@
   </table>
 </div>
 
-<%- include('../partials/paginacao', {
-  pagina,
-  totalPaginas,
-  basePath: '/relatorios/vendas-finalizadas',
-  filtroParams: filtro,
-}) %>
+<%- include('../partials/paginacao', { paginacao, queryBase: filtro }) %>

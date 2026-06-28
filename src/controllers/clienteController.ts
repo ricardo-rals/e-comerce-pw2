@@ -6,28 +6,50 @@ import prisma from "../prismaClient.js";
 
 import { validarCPF, validarTelefone } from "../utils/validators.js";
 
+const TAMANHOS_PAGINA_VALIDOS = [5, 10, 20, 50, 100] as const;
+
+function parsePorPagina(raw: unknown): number {
+  const n = Number(raw);
+  return (TAMANHOS_PAGINA_VALIDOS as readonly number[]).includes(n) ? n : 10;
+}
+
 export async function listar(req: Request, res: Response): Promise<void> {
   const busca = typeof req.query["busca"] === "string" ? req.query["busca"].trim() : "";
+  const pagina = Math.max(1, Number(req.query["pagina"]) || 1);
+  const porPagina = parsePorPagina(req.query["porPagina"]);
 
   const where = busca
-    ? { 
+    ? {
       OR: [
-        { nome: { contains: busca } }, 
-        { cpf: { contains: busca } }
-        ] 
-      }
+        { nome: { contains: busca } },
+        { cpf: { contains: busca } },
+      ],
+    }
     : {};
 
-  const clientes = await prisma.cliente.findMany({
-    where,
-    orderBy: { nome: "asc" },
-  });
+  const skip = (pagina - 1) * porPagina;
+
+  const [clientes, totalRegistros] = await Promise.all([
+    prisma.cliente.findMany({
+      where,
+      orderBy: { nome: "asc" },
+      skip,
+      take: porPagina,
+    }),
+    prisma.cliente.count({ where }),
+  ]);
 
   res.render("clientes/index", {
     title: "Clientes",
     clientes,
     pageCSS: "clientes.css",
     filtro: { busca },
+    paginacao: {
+      paginaAtual: pagina,
+      totalPaginas: Math.ceil(totalRegistros / porPagina) || 1,
+      totalRegistros,
+      porPagina,
+    },
   });
 }
 

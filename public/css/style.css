@@ -372,16 +372,14 @@ td.acoes {
 .paginacao {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1.25rem;
-  font-size: 0.9rem;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .paginacao-info {
   color: var(--texto-leve);
-  min-width: 120px;
-  text-align: center;
+  font-size: 0.875rem;
 }
 
 .paginacao-desabilitado {
@@ -392,6 +390,23 @@ td.acoes {
   font-size: 0.875rem;
   font-weight: 500;
   cursor: default;
+}
+
+.paginacao-tamanho {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--texto-leve);
+}
+
+.paginacao-tamanho select {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  font-size: 0.875rem;
+  background: var(--branco);
+  cursor: pointer;
 }
 
 /* ── footer ───────────────────────────────────────────────────────────────── */

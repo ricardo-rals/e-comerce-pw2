@@ -49,17 +49,57 @@ function parseId(value: string | string[] | undefined): number {
   return parsed;
 }
 
+const TAMANHOS_PAGINA_VALIDOS = [5, 10, 20, 50, 100] as const;
+
+function parsePorPagina(raw: unknown): number {
+  const n = Number(raw);
+  return (TAMANHOS_PAGINA_VALIDOS as readonly number[]).includes(n) ? n : 10;
+}
+
+function parseDataFiltro(raw: unknown, hora: string): Date | undefined {
+  if (typeof raw !== "string" || raw === "") {
+    return undefined;
+  }
+  const d = new Date(`${raw}T${hora}`);
+  return isNaN(d.getTime()) ? undefined : d;
+}
+
 export async function listar(req: Request, res: Response): Promise<void> {
   const status = typeof req.query["status"] === "string" ? req.query["status"].trim() : "";
+  const dataInicio = typeof req.query["dataInicio"] === "string" ? req.query["dataInicio"] : "";
+  const dataFim = typeof req.query["dataFim"] === "string" ? req.query["dataFim"] : "";
+  const pagina = Math.max(1, Number(req.query["pagina"]) || 1);
+  const porPagina = parsePorPagina(req.query["porPagina"]);
 
   const statusValidos = STATUS_VENDA.map(s => s.valor as string);
-  const where = (status && statusValidos.includes(status)) ? { status } : {};
+  const where: Prisma.VendaWhereInput = {};
 
-  const vendas: VendaComCliente[] = await prisma.venda.findMany({
-    where,
-    include: { cliente: true },
-    orderBy: { id: "desc" },
-  });
+  if (status && statusValidos.includes(status)) {
+    where.status = status;
+  }
+
+  const dataInicioDate = parseDataFiltro(dataInicio, "00:00:00");
+  const dataFimDate = parseDataFiltro(dataFim, "23:59:59");
+
+  if (dataInicioDate || dataFimDate) {
+    where.dataVenda = {
+      ...(dataInicioDate ? { gte: dataInicioDate } : {}),
+      ...(dataFimDate ? { lte: dataFimDate } : {}),
+    };
+  }
+
+  const skip = (pagina - 1) * porPagina;
+
+  const [vendas, totalRegistros] = await Promise.all([
+    prisma.venda.findMany({
+      where,
+      include: { cliente: true },
+      orderBy: { id: "desc" },
+      skip,
+      take: porPagina,
+    }) as Promise<VendaComCliente[]>,
+    prisma.venda.count({ where }),
+  ]);
 
   res.render("vendas/index", {
     title: "Vendas",
@@ -67,7 +107,13 @@ export async function listar(req: Request, res: Response): Promise<void> {
     formaPagamentoRotulos,
     STATUS_VENDA,
     pageCSS: "vendas.css",
-    filtro: { status },
+    filtro: { status, dataInicio, dataFim },
+    paginacao: {
+      paginaAtual: pagina,
+      totalPaginas: Math.ceil(totalRegistros / porPagina) || 1,
+      totalRegistros,
+      porPagina,
+    },
   });
 }
 

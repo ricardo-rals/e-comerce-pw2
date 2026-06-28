@@ -15,6 +15,14 @@
       <% } %>
     </select>
   </div>
+  <div class="campo">
+    <label for="dataInicio">Data início</label>
+    <input type="date" id="dataInicio" name="dataInicio" value="<%= filtro.dataInicio %>" />
+  </div>
+  <div class="campo">
+    <label for="dataFim">Data fim</label>
+    <input type="date" id="dataFim" name="dataFim" value="<%= filtro.dataFim %>" />
+  </div>
   <div class="form-acoes">
     <button type="submit" class="btn btn-primary">Filtrar</button>
     <a href="/vendas" class="btn btn-secundario">Limpar</a>
@@ -66,4 +74,5 @@
       </tbody>
     </table>
   </div>
+  <%- include('../partials/paginacao', { paginacao, queryBase: filtro }) %>
 <% } %>
