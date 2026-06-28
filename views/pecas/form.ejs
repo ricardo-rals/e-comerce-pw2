@@ -19,7 +19,7 @@
 
   <div class="campo">
     <label for="denominacao">Denominação</label>
-    <input type="text" id="denominacao" name="denominacao" required
+    <input type="text" id="denominacao" name="denominacao" required maxlength="120"
            value="<%= peca ? peca.denominacao : '' %>" />
   </div>
 
@@ -50,7 +50,7 @@
   <div class="campo">
     <label for="preco">Preço (R$)</label>
     <input type="number" id="preco" name="preco" required
-           min="0" step="0.01" placeholder="0.00"
+           min="0.01" step="0.01" placeholder="0.00"
            value="<%= peca ? peca.preco : '' %>" />
   </div>
 

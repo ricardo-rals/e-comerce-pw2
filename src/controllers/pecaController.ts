@@ -33,9 +33,29 @@ export async function novo(_req: Request, res: Response): Promise<void> {
 export async function criar(req: Request, res: Response): Promise<void> {
   const { denominacao, categoria, tamanho } = req.body as Record<string, string>;
 
-  const preco = parseFloat(req.body.preco as string);
+  const preco = Number(req.body.preco);
 
-  const quantidadeEstoque = parseInt(req.body.quantidadeEstoque as string, 10);
+  const quantidadeEstoque = Number(req.body.quantidadeEstoque);
+
+  if (!Number.isInteger(quantidadeEstoque) || quantidadeEstoque < 0) {
+    res.redirect("/pecas/novo?erro=" + encodeURIComponent("Quantidade em estoque deve ser zero ou maior."));
+    return;
+  }
+
+  if (!(preco > 0)) {
+    res.redirect("/pecas/novo?erro=" + encodeURIComponent("Preço deve ser maior que zero."));
+    return;
+  }
+
+  if (!CATEGORIAS.map(c => c.valor as string).includes(categoria)) {
+    res.redirect("/pecas/novo?erro=" + encodeURIComponent("Categoria inválida."));
+    return;
+  }
+
+  if (!TAMANHOS.map(t => t.valor as string).includes(tamanho)) {
+    res.redirect("/pecas/novo?erro=" + encodeURIComponent("Tamanho inválido."));
+    return;
+  }
 
   try {
     await prisma.pecaRoupa.create({
@@ -91,9 +111,29 @@ export async function atualizar(req: Request, res: Response): Promise<void> {
 
   const { denominacao, categoria, tamanho } = req.body as Record<string, string>;
 
-  const preco = parseFloat(req.body.preco as string);
+  const preco = Number(req.body.preco);
+  
+  const quantidadeEstoque = Number(req.body.quantidadeEstoque);
 
-  const quantidadeEstoque = parseInt(req.body.quantidadeEstoque as string, 10);
+  if (!Number.isInteger(quantidadeEstoque) || quantidadeEstoque < 0) {
+    res.redirect(`/pecas/${id}/editar?erro=` + encodeURIComponent("Quantidade em estoque deve ser zero ou maior."));
+    return;
+  }
+
+  if (!(preco > 0)) {
+    res.redirect(`/pecas/${id}/editar?erro=` + encodeURIComponent("Preço deve ser maior que zero."));
+    return;
+  }
+
+  if (!CATEGORIAS.map(c => c.valor as string).includes(categoria)) {
+    res.redirect(`/pecas/${id}/editar?erro=` + encodeURIComponent("Categoria inválida."));
+    return;
+  }
+
+  if (!TAMANHOS.map(t => t.valor as string).includes(tamanho)) {
+    res.redirect(`/pecas/${id}/editar?erro=` + encodeURIComponent("Tamanho inválido."));
+    return;
+  }
 
   try {
     await prisma.pecaRoupa.update({
