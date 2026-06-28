@@ -21,6 +21,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 5000);
   });
 
+  // Máscaras de input
+  function mascaraCPF(e) {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 9) v = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+    else if (v.length > 6) v = v.replace(/^(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+    else if (v.length > 3) v = v.replace(/^(\d{3})(\d{1,3})/, '$1.$2');
+    e.target.value = v;
+  }
+
+  function mascaraTelefone(e) {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 6) v = v.replace(/^(\d{2})(\d{5})(\d{1,4})/, '($1) $2-$3');
+    else if (v.length > 2) v = v.replace(/^(\d{2})(\d{1,5})/, '($1) $2');
+    else if (v.length > 0) v = v.replace(/^(\d{1,2})/, '($1');
+    e.target.value = v;
+  }
+
+  const campoCPF = document.getElementById('cpf');
+  if (campoCPF) campoCPF.addEventListener('input', mascaraCPF);
+
+  const campoTelefone = document.getElementById('telefone');
+  if (campoTelefone) campoTelefone.addEventListener('input', mascaraTelefone);
+
   // Dropdown de relatórios
   const dropdownBtn = document.querySelector('.nav-dropdown-btn');
   const dropdownMenu = document.querySelector('.dropdown-menu');

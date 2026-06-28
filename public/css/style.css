@@ -310,6 +310,17 @@ td.acoes {
   box-shadow: 0 0 0 3px rgba(192, 57, 43, .15);
 }
 
+.campo--erro label {
+  color: var(--vermelho);
+}
+
+.campo--erro input,
+.campo--erro select,
+.campo--erro textarea {
+  border-color: var(--vermelho);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, .15);
+}
+
 .form-acoes {
   display: flex;
   gap: 0.75rem;
