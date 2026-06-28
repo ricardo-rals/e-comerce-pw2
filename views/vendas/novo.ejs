@@ -1,0 +1,45 @@
+<div class="page-header">
+  <h1>Abrir Nova Venda</h1>
+</div>
+
+<% if (clientes.length === 0) { %>
+  <div class="alert alert-erro">
+    Cadastre ao menos um cliente antes de abrir uma venda.
+  </div>
+  <a href="/clientes/novo" class="btn btn-primary">Cadastrar Cliente</a>
+<% } else { %>
+  <form method="POST" action="/vendas" class="form-card">
+    <div class="campo">
+      <label for="clienteId">Cliente</label>
+      <select id="clienteId" name="clienteId" required>
+        <option value="">Selecione...</option>
+        <% for (const cliente of clientes) { %>
+          <option value="<%= cliente.id %>" <%= String(cliente.id) === valoresPadrao.clienteId ? 'selected' : '' %>>
+            <%= cliente.nome %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="dataVenda">Data da Venda</label>
+      <input type="date" id="dataVenda" name="dataVenda" value="<%= valoresPadrao.dataVenda %>" required />
+    </div>
+
+    <div class="campo">
+      <label for="formaPagamento">Forma de Pagamento</label>
+      <select id="formaPagamento" name="formaPagamento" required>
+        <% for (const fp of FORMAS_PAGAMENTO) { %>
+          <option value="<%= fp.valor %>" <%= fp.valor === valoresPadrao.formaPagamento ? 'selected' : '' %>>
+            <%= fp.rotulo %>
+          </option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="form-acoes">
+      <button type="submit" class="btn btn-primary">Abrir Venda</button>
+      <a href="/vendas" class="btn btn-secundario">Cancelar</a>
+    </div>
+  </form>
+<% } %>

@@ -1,0 +1,124 @@
+<div class="page-header venda-header">
+  <div>
+    <h1>Venda #<%= venda.id %></h1>
+    <p class="venda-subtitulo">Cliente: <strong><%= venda.cliente.nome %></strong></p>
+  </div>
+  <span class="status-badge <%= venda.status === 'ABERTA' ? 'status-aberta' : 'status-finalizada' %>">
+    <%= venda.status === 'ABERTA' ? 'Aberta' : 'Finalizada' %>
+  </span>
+</div>
+
+<section class="venda-resumo">
+  <div class="resumo-item">
+    <span class="resumo-label">Data da Venda</span>
+    <strong><%= formatarData(venda.dataVenda) %></strong>
+  </div>
+  <div class="resumo-item">
+    <span class="resumo-label">Forma de Pagamento</span>
+    <strong><%= formaPagamentoRotulos[venda.formaPagamento] ?? venda.formaPagamento %></strong>
+  </div>
+  <div class="resumo-item destaque-total">
+    <span class="resumo-label">Valor Total</span>
+    <strong><%= formatarMoeda(venda.valorTotal) %></strong>
+  </div>
+</section>
+
+<h2 class="secao-titulo">Itens da Venda</h2>
+
+<% if (venda.itens.length === 0) { %>
+  <p class="vazio">Ainda não há itens nesta venda.</p>
+<% } else { %>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Ordem</th>
+          <th>Peça</th>
+          <th>Qtd.</th>
+          <th>Desconto</th>
+          <th>Valor do Item</th>
+          <% if (isAberta) { %><th>Ações</th><% } %>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const item of venda.itens) {
+             const desconto = Number(item.percentualDesconto);
+             const descontoLegivel = desconto === 0
+               ? 'Sem desconto (0%)'
+               : `${desconto.toFixed(0)}% de desconto`;
+        %>
+          <tr>
+            <td><%= item.ordem %></td>
+            <td><%= item.pecaRoupa.denominacao %> (<%= item.pecaRoupa.tamanho %>)</td>
+            <td><%= item.quantidade %></td>
+            <td><%= descontoLegivel %></td>
+            <td><strong><%= formatarMoeda(item.valorItem) %></strong></td>
+            <% if (isAberta) { %>
+              <td class="acoes">
+                <form method="POST" action="/vendas/<%= venda.id %>/itens/<%= item.id %>" class="form-inline"
+                      data-confirm="Deseja remover este item da venda?">
+                  <input type="hidden" name="_method" value="DELETE" />
+                  <button type="submit" class="btn btn-perigo">Remover</button>
+                </form>
+              </td>
+            <% } %>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<% if (isAberta) { %>
+  <section class="bloco-edicao">
+    <h2 class="secao-titulo">Adicionar Item</h2>
+
+    <% const pecasComEstoque = pecas.filter((peca) => peca.quantidadeEstoque > 0); %>
+
+    <% if (pecasComEstoque.length === 0) { %>
+      <div class="alert alert-erro">Nenhuma peça com estoque disponível para adicionar.</div>
+    <% } else { %>
+      <form method="POST" action="/vendas/<%= venda.id %>/itens" class="form-card">
+        <div class="campo">
+          <label for="pecaRoupaId">Peça</label>
+          <select id="pecaRoupaId" name="pecaRoupaId" required>
+            <option value="">Selecione...</option>
+            <% for (const p of pecasComEstoque) { %>
+              <option value="<%= p.id %>">
+                <%= p.denominacao %> (<%= p.tamanho %>) - Estoque: <%= p.quantidadeEstoque %> - <%= formatarMoeda(p.preco) %>
+              </option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="quantidade">Quantidade</label>
+          <input type="number" id="quantidade" name="quantidade" min="1" step="1" value="1" required />
+        </div>
+
+        <div class="form-acoes">
+          <button type="submit" class="btn btn-primary">Adicionar Item</button>
+        </div>
+      </form>
+    <% } %>
+  </section>
+
+  <section class="bloco-acoes-venda">
+    <form method="POST" action="/vendas/<%= venda.id %>/finalizar" class="form-inline"
+          data-confirm="Deseja finalizar a venda #<%= venda.id %>?">
+      <button type="submit" class="btn btn-primary">Finalizar Venda</button>
+    </form>
+
+    <form method="POST" action="/vendas/<%= venda.id %>" class="form-inline"
+          data-confirm="Deseja excluir a venda #<%= venda.id %>? Esta ação remove todos os itens.">
+      <input type="hidden" name="_method" value="DELETE" />
+      <button type="submit" class="btn btn-perigo">Excluir Venda</button>
+    </form>
+
+    <a href="/vendas" class="btn btn-secundario">Voltar para lista</a>
+  </section>
+<% } else { %>
+  <section class="bloco-acoes-venda">
+    <a href="/vendas" class="btn btn-secundario">Voltar para lista</a>
+  </section>
+<% } %>

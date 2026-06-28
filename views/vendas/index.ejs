@@ -1,0 +1,51 @@
+<div class="page-header">
+  <h1>Vendas</h1>
+  <a href="/vendas/novo" class="btn btn-primary">+ Nova Venda</a>
+</div>
+
+<% if (vendas.length === 0) { %>
+  <p class="vazio">Nenhuma venda cadastrada.</p>
+<% } else { %>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Data</th>
+          <th>Cliente</th>
+          <th>Forma de Pagamento</th>
+          <th>Status</th>
+          <th>Valor Total</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const v of vendas) {
+             const formaPagamento = formaPagamentoRotulos[v.formaPagamento] ?? v.formaPagamento;
+        %>
+          <tr>
+            <td><strong>#<%= v.id %></strong></td>
+            <td><%= formatarData(v.dataVenda) %></td>
+            <td><%= v.cliente.nome %></td>
+            <td><%= formaPagamento %></td>
+            <td>
+              <span class="status-badge <%= v.status === 'ABERTA' ? 'status-aberta' : 'status-finalizada' %>">
+                <%= v.status === 'ABERTA' ? 'Aberta' : 'Finalizada' %>
+              </span>
+            </td>
+            <td><strong><%= formatarMoeda(v.valorTotal) %></strong></td>
+            <td class="acoes">
+              <a href="/vendas/<%= v.id %>" class="btn btn-secundario">Detalhe</a>
+              <form method="POST" action="/vendas/<%= v.id %>"
+                    class="form-inline"
+                    data-confirm="Deseja excluir a venda #<%= v.id %>?">
+                <input type="hidden" name="_method" value="DELETE" />
+                <button type="submit" class="btn btn-perigo">Excluir</button>
+              </form>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
