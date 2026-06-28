@@ -47,6 +47,19 @@
         </tr>
       <% } %>
     </tbody>
+    <% if (pecas.length > 0) {
+         const totalQtd     = pecas.reduce((s, p) => s + p.quantidadeTotalVendida, 0);
+         const totalReceita = pecas.reduce((s, p) => s + p.receitaObtida, 0);
+         const rotuloTotal  = paginacao.totalPaginas > 1 ? 'Total da página' : 'Total';
+    %>
+    <tfoot>
+      <tr>
+        <td colspan="2"><strong><%= rotuloTotal %></strong></td>
+        <td><strong><%= totalQtd %></strong></td>
+        <td><strong><%= formatarMoeda(Math.round(totalReceita * 100) / 100) %></strong></td>
+      </tr>
+    </tfoot>
+    <% } %>
   </table>
 </div>
 

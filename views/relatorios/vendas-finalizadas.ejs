@@ -47,6 +47,19 @@
         </tr>
       <% } %>
     </tbody>
+    <% if (vendas.length > 0) {
+         const totalValor = vendas.reduce((s, v) => s + v.valorTotalCompra, 0);
+         const totalPecas = vendas.reduce((s, v) => s + v.quantidadeTotalPecas, 0);
+         const rotuloTotal = paginacao.totalPaginas > 1 ? 'Total da página' : 'Total';
+    %>
+    <tfoot>
+      <tr>
+        <td colspan="4"><strong><%= rotuloTotal %></strong></td>
+        <td><strong><%= formatarMoeda(Math.round(totalValor * 100) / 100) %></strong></td>
+        <td><strong><%= totalPecas %></strong></td>
+      </tr>
+    </tfoot>
+    <% } %>
   </table>
 </div>
 

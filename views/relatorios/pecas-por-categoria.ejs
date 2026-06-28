@@ -50,6 +50,22 @@
           </tr>
         <% } %>
       </tbody>
+      <% if (pecas.length > 0) {
+           const totalEstoque     = pecas.reduce((s, p) => s + p.quantidadeEstoque, 0);
+           const totalValorEstoque = pecas.reduce((s, p) => s + p.preco * p.quantidadeEstoque, 0);
+           const rotuloTotal      = paginacao.totalPaginas > 1 ? 'Total da página' : 'Total';
+      %>
+      <tfoot>
+        <tr>
+          <td colspan="2"><strong><%= rotuloTotal %></strong></td>
+          <td>
+            <strong><%= formatarMoeda(Math.round(totalValorEstoque * 100) / 100) %></strong>
+            <br><small style="font-weight: 400; color: var(--texto-leve);">valor em estoque</small>
+          </td>
+          <td><strong><%= totalEstoque %></strong></td>
+        </tr>
+      </tfoot>
+      <% } %>
     </table>
   </div>
 

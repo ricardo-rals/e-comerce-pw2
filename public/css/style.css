@@ -253,6 +253,14 @@ tbody tr:last-child td { border-bottom: none; }
 
 tbody tr:hover { background: #F8FAFB; }
 
+tfoot tr { background: #F1F4F8; }
+
+tfoot td {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  border-top: 2px solid var(--borda);
+}
+
 td.acoes {
   display: flex;
   gap: 0.4rem;
