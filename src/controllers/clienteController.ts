@@ -4,17 +4,15 @@ import { Prisma } from "@prisma/client";
 
 import prisma from "../prismaClient.js";
 
-export async function listar(req: Request, res: Response): Promise<void> {
+export async function listar(_req: Request, res: Response): Promise<void> {
   const clientes = await prisma.cliente.findMany({
     orderBy: { nome: "asc" },
   });
 
-  const erro = typeof req.query.erro === "string" ? req.query.erro : null;
-
   res.render("clientes/index", {
     title: "Clientes",
     clientes,
-    erro,
+    pageCSS: "clientes.css",
   });
 }
 
@@ -40,7 +38,7 @@ export async function criar(req: Request, res: Response): Promise<void> {
       },
     });
 
-    res.redirect("/clientes");
+    res.redirect("/clientes?sucesso=" + encodeURIComponent("Cliente cadastrado com sucesso."));
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       res.render("clientes/form", {
@@ -93,7 +91,7 @@ export async function atualizar(req: Request, res: Response): Promise<void> {
       },
     });
 
-    res.redirect("/clientes");
+    res.redirect("/clientes?sucesso=" + encodeURIComponent("Cliente atualizado com sucesso."));
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       res.render("clientes/form", {
@@ -131,5 +129,5 @@ export async function remover(req: Request, res: Response): Promise<void> {
 
   await prisma.cliente.delete({ where: { id } });
 
-  res.redirect("/clientes");
+  res.redirect("/clientes?sucesso=" + encodeURIComponent("Cliente removido com sucesso."));
 }

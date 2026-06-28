@@ -3,42 +3,41 @@
   <a href="/clientes/novo" class="btn btn-primary">+ Novo Cliente</a>
 </div>
 
-<% if (erro) { %>
-  <div class="alert alert-erro"><%= erro %></div>
-<% } %>
-
 <% if (clientes.length === 0) { %>
   <p class="vazio">Nenhum cliente cadastrado.</p>
 <% } else { %>
-  <table>
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>CPF</th>
-        <th>Telefone</th>
-        <th>E-mail</th>
-        <th>Nascimento</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% for (const c of clientes) { %>
+  <div class="table-wrapper">
+    <table>
+      <thead>
         <tr>
-          <td><%= c.nome %></td>
-          <td><%= c.cpf %></td>
-          <td><%= c.telefone %></td>
-          <td><%= c.email %></td>
-          <td><%= new Date(c.dataNascimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) %></td>
-          <td class="acoes">
-            <a href="/clientes/<%= c.id %>/editar" class="btn btn-secundario">Editar</a>
-            <form method="POST" action="/clientes/<%= c.id %>" class="form-inline"
-                  onsubmit="return confirm('Excluir cliente <%= c.nome.replace(/'/g, '') %>?')">
-              <input type="hidden" name="_method" value="DELETE" />
-              <button type="submit" class="btn btn-perigo">Excluir</button>
-            </form>
-          </td>
+          <th>Nome</th>
+          <th>CPF</th>
+          <th>Telefone</th>
+          <th>E-mail</th>
+          <th>Nascimento</th>
+          <th>Ações</th>
         </tr>
-      <% } %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% for (const c of clientes) { %>
+          <tr>
+            <td><%= c.nome %></td>
+            <td><%= c.cpf %></td>
+            <td><%= c.telefone %></td>
+            <td><%= c.email %></td>
+            <td><%= formatarData(c.dataNascimento) %></td>
+            <td class="acoes">
+              <a href="/clientes/<%= c.id %>/editar" class="btn btn-secundario">Editar</a>
+              <form method="POST" action="/clientes/<%= c.id %>"
+                    class="form-inline"
+                    data-confirm="Deseja excluir o cliente <%= c.nome %>?">
+                <input type="hidden" name="_method" value="DELETE" />
+                <button type="submit" class="btn btn-perigo">Excluir</button>
+              </form>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
 <% } %>

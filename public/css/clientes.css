@@ -1,0 +1,11 @@
+/* Estilos específicos da página de Clientes */
+
+/* Coluna de e-mail truncada em telas menores */
+@media (max-width: 900px) {
+  td:nth-child(4) {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

@@ -1,0 +1,13 @@
+/* Estilos específicos da página de Peças */
+
+/* Coluna de preço alinhada à direita */
+td:nth-child(4),
+th:nth-child(4) {
+  text-align: right;
+}
+
+/* Coluna de estoque centralizada */
+td:nth-child(5),
+th:nth-child(5) {
+  text-align: center;
+}

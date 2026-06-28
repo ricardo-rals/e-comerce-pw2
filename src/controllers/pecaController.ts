@@ -8,17 +8,15 @@ import { CATEGORIAS, TAMANHOS } from "../utils/enums.js";
 
 const enumsView = { CATEGORIAS, TAMANHOS };
 
-export async function listar(req: Request, res: Response): Promise<void> {
+export async function listar(_req: Request, res: Response): Promise<void> {
   const pecas = await prisma.pecaRoupa.findMany({
     orderBy: [{ denominacao: "asc" }, { tamanho: "asc" }],
   });
 
-  const erro = typeof req.query["erro"] === "string" ? req.query["erro"] : null;
-
   res.render("pecas/index", {
     title: "Peças de Roupa",
     pecas,
-    erro,
+    pageCSS: "pecas.css",
     ...enumsView,
   });
 }
@@ -50,7 +48,7 @@ export async function criar(req: Request, res: Response): Promise<void> {
       },
     });
 
-    res.redirect("/pecas");
+    res.redirect("/pecas?sucesso=" + encodeURIComponent("Peça cadastrada com sucesso."));
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       res.render("pecas/form", {
@@ -109,7 +107,7 @@ export async function atualizar(req: Request, res: Response): Promise<void> {
       },
     });
 
-    res.redirect("/pecas");
+    res.redirect("/pecas?sucesso=" + encodeURIComponent("Peça atualizada com sucesso."));
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       res.render("pecas/form", {
@@ -148,5 +146,5 @@ export async function remover(req: Request, res: Response): Promise<void> {
 
   await prisma.pecaRoupa.delete({ where: { id } });
 
-  res.redirect("/pecas");
+  res.redirect("/pecas?sucesso=" + encodeURIComponent("Peça removida com sucesso."));
 }

@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 
 import expressLayouts from "express-ejs-layouts";
 
@@ -42,12 +42,32 @@ app.use(
   })
 );
 
+// Middleware de flash e helpers de formatação disponíveis em todas as views
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.locals["currentPath"]   = req.path;
+
+  res.locals["flashSucesso"]  = typeof req.query["sucesso"] === "string" ? req.query["sucesso"] : null;
+
+  res.locals["flashErro"]     = typeof req.query["erro"] === "string" ? req.query["erro"] : null;
+
+  res.locals["formatarMoeda"] = (valor: number) =>
+    valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+
+  res.locals["formatarData"] = (data: Date) =>
+    new Date(data).toLocaleDateString("pt-BR", { timeZone: "UTC" });
+
+  next();
+});
+
 app.use("/clientes", clientesRouter);
 
 app.use("/pecas", pecasRouter);
 
 app.get("/", (_req: Request, res: Response) => {
-  res.render("index", { title: "Venda Roupas" });
+  res.render("index", { title: "Início" });
 });
 
 app.listen(PORT, () => {

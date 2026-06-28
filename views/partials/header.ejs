@@ -1,0 +1,28 @@
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="brand">Venda Roupas</a>
+
+    <nav class="nav-principal">
+      <a href="/clientes" class="nav-link <%= locals.currentPath?.startsWith('/clientes') ? 'ativo' : '' %>">
+        Clientes
+      </a>
+      <a href="/pecas" class="nav-link <%= locals.currentPath?.startsWith('/pecas') ? 'ativo' : '' %>">
+        Peças
+      </a>
+      <a href="/vendas" class="nav-link <%= locals.currentPath?.startsWith('/vendas') ? 'ativo' : '' %>">
+        Vendas
+      </a>
+
+      <div class="nav-dropdown">
+        <button class="nav-link nav-dropdown-btn">
+          Relatórios ▾
+        </button>
+        <div class="dropdown-menu">
+          <a href="/relatorios/periodo" class="dropdown-item">Por Período</a>
+          <a href="/relatorios/cliente" class="dropdown-item">Por Cliente</a>
+          <a href="/relatorios/estoque" class="dropdown-item">Estoque</a>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>

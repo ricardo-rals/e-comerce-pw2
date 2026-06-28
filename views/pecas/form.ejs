@@ -28,8 +28,7 @@
     <select id="categoria" name="categoria" required>
       <option value="">Selecione...</option>
       <% for (const cat of CATEGORIAS) { %>
-        <option value="<%= cat.valor %>"
-          <%= peca && peca.categoria === cat.valor ? 'selected' : '' %>>
+        <option value="<%= cat.valor %>" <%= peca && peca.categoria === cat.valor ? 'selected' : '' %>>
           <%= cat.rotulo %>
         </option>
       <% } %>
@@ -41,8 +40,7 @@
     <select id="tamanho" name="tamanho" required>
       <option value="">Selecione...</option>
       <% for (const tam of TAMANHOS) { %>
-        <option value="<%= tam.valor %>"
-          <%= peca && peca.tamanho === tam.valor ? 'selected' : '' %>>
+        <option value="<%= tam.valor %>" <%= peca && peca.tamanho === tam.valor ? 'selected' : '' %>>
           <%= tam.rotulo %>
         </option>
       <% } %>
