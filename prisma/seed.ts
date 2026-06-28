@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+
 import type { Categoria, Tamanho } from "../src/utils/enums.js";
 
 const prisma = new PrismaClient();
@@ -141,7 +142,6 @@ async function main(): Promise<void> {
   console.log("Populando peças de roupa...");
 
   for (const peca of pecas) {
-
     await prisma.pecaRoupa.upsert({
       where: {
         denominacao_tamanho: {
@@ -149,10 +149,12 @@ async function main(): Promise<void> {
           tamanho: peca.tamanho,
         },
       },
-      update: { preco: peca.preco, quantidadeEstoque: peca.quantidadeEstoque },
+      update: {
+        preco: peca.preco,
+        quantidadeEstoque: peca.quantidadeEstoque,
+      },
       create: peca,
     });
-
   }
 
   console.log(`  ${pecas.length} peças inseridas/atualizadas.`);
@@ -160,7 +162,6 @@ async function main(): Promise<void> {
   console.log("Populando clientes...");
 
   for (const cliente of clientes) {
-
     await prisma.cliente.upsert({
       where: { cpf: cliente.cpf },
       update: {
@@ -170,7 +171,6 @@ async function main(): Promise<void> {
       },
       create: cliente,
     });
-    
   }
 
   console.log(`  ${clientes.length} clientes inseridos/atualizados.`);
@@ -179,6 +179,7 @@ async function main(): Promise<void> {
 main()
   .catch((err: unknown) => {
     console.error(err);
+
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());

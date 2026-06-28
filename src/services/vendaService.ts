@@ -1,23 +1,18 @@
 import { Venda, ItemVenda } from "@prisma/client";
+
 import prisma from "../prismaClient.js";
 
-type TransactionClient = Parameters<
-  Parameters<typeof prisma.$transaction>[0]
->[0];
+type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 export interface CriarVendaInput {
   clienteId: number;
-
   dataVenda: Date;
-
   formaPagamento: string;
 }
 
 export interface AdicionarItemInput {
   vendaId: number;
-
   pecaRoupaId: number;
-
   quantidade: number;
 }
 
@@ -33,12 +28,9 @@ export function calcularPercentualPorOrdem(ordem: number): number {
   return 15;
 }
 
-// ── helper interno (reutilizado dentro de transações) ───────────────────────
+// ── helper interno (reutilizado dentro de transações) ────────────────────────
 
-async function _recalcularVenda(
-  tx: TransactionClient,
-  vendaId: number,
-): Promise<void> {
+async function _recalcularVenda(tx: TransactionClient, vendaId: number): Promise<void> {
   const itens = await tx.itemVenda.findMany({
     where: { vendaId },
     orderBy: { ordem: "asc" },
@@ -51,16 +43,14 @@ async function _recalcularVenda(
     const percentualDesconto = calcularPercentualPorOrdem(item.ordem);
 
     const valorItem =
-      Math.round(
-        item.pecaRoupa.preco *
-          item.quantidade *
-          (1 - percentualDesconto / 100) *
-          100,
-      ) / 100;
+      Math.round(item.pecaRoupa.preco * item.quantidade * (1 - percentualDesconto / 100) * 100) / 100;
 
     await tx.itemVenda.update({
       where: { id: item.id },
-      data: { percentualDesconto, valorItem },
+      data: {
+        percentualDesconto,
+        valorItem,
+      },
     });
 
     valorTotal += valorItem;
@@ -106,23 +96,14 @@ export async function adicionarItem({
   if (venda.status !== "ABERTA")
     throw new Error("Não é possível adicionar itens a uma venda finalizada.");
 
-  const peca = await prisma.pecaRoupa.findUnique({
+  const peca = await prisma.pecaRoupa.findUnique({ where: { id: pecaRoupaId } });
 
-    where: { id: pecaRoupaId },
+  if (!peca) throw new Error("Peça de roupa não encontrada.");
 
-  });
-
-  if ( !peca ) throw new Error("Peça de roupa não encontrada.");
-
-  if ( peca.quantidadeEstoque - quantidade < 0 ) {
-    throw new Error(
-          `Estoque insuficiente. Disponível: ${peca.quantidadeEstoque} unidade(s).`,
-        );
-  }
-   
+  if (peca.quantidadeEstoque - quantidade < 0)
+    throw new Error(`Estoque insuficiente. Disponível: ${peca.quantidadeEstoque} unidade(s).`);
 
   return prisma.$transaction(async (tx) => {
-
     await tx.pecaRoupa.update({
       where: { id: pecaRoupaId },
       data: { quantidadeEstoque: { decrement: quantidade } },
@@ -148,7 +129,6 @@ export async function adicionarItem({
 }
 
 export async function removerItem(itemId: number): Promise<void> {
-
   const item = await prisma.itemVenda.findUnique({
     where: { id: itemId },
     include: { venda: true },
@@ -156,10 +136,9 @@ export async function removerItem(itemId: number): Promise<void> {
 
   if (!item) throw new Error("Item não encontrado.");
 
-  if (item.venda.status !== "ABERTA") {
+  if (item.venda.status !== "ABERTA")
     throw new Error("Não é possível remover itens de uma venda finalizada.");
-  }
-    
+
   await prisma.$transaction(async (tx) => {
     await tx.pecaRoupa.update({
       where: { id: item.pecaRoupaId },
@@ -198,19 +177,10 @@ export async function finalizarVenda(vendaId: number): Promise<Venda> {
 
   if (!venda) throw new Error("Venda não encontrada.");
 
-  if (venda.status === "FINALIZADA") {
+  if (venda.status === "FINALIZADA") throw new Error("A venda já está finalizada.");
 
-    throw new Error("A venda já está finalizada.");
-
-  }
-    
-
-  if (venda.itens.length === 0){
-
+  if (venda.itens.length === 0)
     throw new Error("Não é possível finalizar uma venda sem itens.");
-    
-  }
-    
 
   return prisma.venda.update({
     where: { id: vendaId },

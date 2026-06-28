@@ -1,0 +1,72 @@
+<%
+  const editando = peca && peca.id != null;
+  const action   = editando ? `/pecas/${peca.id}` : '/pecas';
+%>
+
+<div class="page-header">
+  <h1><%= title %></h1>
+  <a href="/pecas" class="btn btn-secundario">← Voltar</a>
+</div>
+
+<% if (erro) { %>
+  <div class="alert alert-erro"><%= erro %></div>
+<% } %>
+
+<form method="POST" action="<%= action %>" class="form-card">
+  <% if (editando) { %>
+    <input type="hidden" name="_method" value="PUT" />
+  <% } %>
+
+  <div class="campo">
+    <label for="denominacao">Denominação</label>
+    <input type="text" id="denominacao" name="denominacao" required
+           value="<%= peca ? peca.denominacao : '' %>" />
+  </div>
+
+  <div class="campo">
+    <label for="categoria">Categoria</label>
+    <select id="categoria" name="categoria" required>
+      <option value="">Selecione...</option>
+      <% for (const cat of CATEGORIAS) { %>
+        <option value="<%= cat.valor %>"
+          <%= peca && peca.categoria === cat.valor ? 'selected' : '' %>>
+          <%= cat.rotulo %>
+        </option>
+      <% } %>
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="tamanho">Tamanho</label>
+    <select id="tamanho" name="tamanho" required>
+      <option value="">Selecione...</option>
+      <% for (const tam of TAMANHOS) { %>
+        <option value="<%= tam.valor %>"
+          <%= peca && peca.tamanho === tam.valor ? 'selected' : '' %>>
+          <%= tam.rotulo %>
+        </option>
+      <% } %>
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="preco">Preço (R$)</label>
+    <input type="number" id="preco" name="preco" required
+           min="0" step="0.01" placeholder="0.00"
+           value="<%= peca ? peca.preco : '' %>" />
+  </div>
+
+  <div class="campo">
+    <label for="quantidadeEstoque">Quantidade em estoque</label>
+    <input type="number" id="quantidadeEstoque" name="quantidadeEstoque" required
+           min="0" step="1" placeholder="0"
+           value="<%= peca ? peca.quantidadeEstoque : '' %>" />
+  </div>
+
+  <div class="form-acoes">
+    <button type="submit" class="btn btn-primary">
+      <%= editando ? 'Salvar alterações' : 'Cadastrar peça' %>
+    </button>
+    <a href="/pecas" class="btn btn-secundario">Cancelar</a>
+  </div>
+</form>
