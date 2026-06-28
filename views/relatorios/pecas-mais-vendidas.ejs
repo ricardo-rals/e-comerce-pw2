@@ -6,6 +6,21 @@
   A receita exibida considera somente itens de vendas com status <strong>FINALIZADA</strong>.
 </p>
 
+<form method="GET" action="/relatorios/pecas-mais-vendidas" class="form-filtro">
+  <div class="campo">
+    <label for="dataInicio">Data inicial da venda</label>
+    <input type="date" id="dataInicio" name="dataInicio" value="<%= filtro.dataInicio %>" />
+  </div>
+  <div class="campo">
+    <label for="dataFim">Data final da venda</label>
+    <input type="date" id="dataFim" name="dataFim" value="<%= filtro.dataFim %>" />
+  </div>
+  <div class="form-acoes">
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+    <a href="/relatorios/pecas-mais-vendidas" class="btn btn-secundario">Limpar</a>
+  </div>
+</form>
+
 <div class="table-wrapper">
   <table>
     <thead>
@@ -34,3 +49,10 @@
     </tbody>
   </table>
 </div>
+
+<%- include('../partials/paginacao', {
+  pagina,
+  totalPaginas,
+  basePath: '/relatorios/pecas-mais-vendidas',
+  filtroParams: filtro,
+}) %>

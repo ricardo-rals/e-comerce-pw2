@@ -3,6 +3,18 @@
   <a href="/clientes/novo" class="btn btn-primary">+ Novo Cliente</a>
 </div>
 
+<form method="GET" action="/clientes" class="form-filtro">
+  <div class="campo">
+    <label for="busca">Buscar</label>
+    <input type="text" id="busca" name="busca" placeholder="Nome ou CPF..."
+           value="<%= filtro.busca %>" />
+  </div>
+  <div class="form-acoes">
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+    <a href="/clientes" class="btn btn-secundario">Limpar</a>
+  </div>
+</form>
+
 <% if (clientes.length === 0) { %>
   <p class="vazio">Nenhum cliente cadastrado.</p>
 <% } else { %>

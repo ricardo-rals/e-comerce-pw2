@@ -6,8 +6,20 @@ import prisma from "../prismaClient.js";
 
 import { validarCPF, validarTelefone } from "../utils/validators.js";
 
-export async function listar(_req: Request, res: Response): Promise<void> {
+export async function listar(req: Request, res: Response): Promise<void> {
+  const busca = typeof req.query["busca"] === "string" ? req.query["busca"].trim() : "";
+
+  const where = busca
+    ? { 
+      OR: [
+        { nome: { contains: busca } }, 
+        { cpf: { contains: busca } }
+        ] 
+      }
+    : {};
+
   const clientes = await prisma.cliente.findMany({
+    where,
     orderBy: { nome: "asc" },
   });
 
@@ -15,6 +27,7 @@ export async function listar(_req: Request, res: Response): Promise<void> {
     title: "Clientes",
     clientes,
     pageCSS: "clientes.css",
+    filtro: { busca },
   });
 }
 
@@ -32,7 +45,12 @@ export async function criar(req: Request, res: Response): Promise<void> {
   const dadosForm = { nome, cpf, telefone, email, dataNascimento };
 
   const erroForm = (erro: string, campoErro: string) => {
-    res.render("clientes/form", { title: "Novo Cliente", cliente: dadosForm, erro, campoErro });
+    res.render("clientes/form", {
+      title: "Novo Cliente",
+      cliente: dadosForm,
+      erro,
+      campoErro,
+    });
   };
 
   if (!validarCPF(cpf)) {
@@ -64,7 +82,13 @@ export async function criar(req: Request, res: Response): Promise<void> {
 
   try {
     await prisma.cliente.create({
-      data: { nome, cpf, telefone, email, dataNascimento: nascimento },
+      data: {
+        nome,
+        cpf,
+        telefone,
+        email,
+        dataNascimento: nascimento,
+      },
     });
 
     res.redirect("/clientes?sucesso=" + encodeURIComponent("Cliente cadastrado com sucesso."));
@@ -83,7 +107,10 @@ export async function exibirFormularioEditar(req: Request, res: Response): Promi
 
   const cliente = await prisma.cliente.findUnique({ where: { id } });
 
-  if (!cliente) { res.redirect("/clientes"); return; }
+  if (!cliente) {
+    res.redirect("/clientes");
+    return;
+  }
 
   res.render("clientes/form", {
     title: "Editar Cliente",
@@ -100,7 +127,12 @@ export async function atualizar(req: Request, res: Response): Promise<void> {
   const dadosForm = { id, nome, cpf, telefone, email, dataNascimento };
 
   const erroForm = (erro: string, campoErro: string) => {
-    res.render("clientes/form", { title: "Editar Cliente", cliente: dadosForm, erro, campoErro });
+    res.render("clientes/form", {
+      title: "Editar Cliente",
+      cliente: dadosForm,
+      erro,
+      campoErro,
+    });
   };
 
   if (!validarCPF(cpf)) {
@@ -133,7 +165,13 @@ export async function atualizar(req: Request, res: Response): Promise<void> {
   try {
     await prisma.cliente.update({
       where: { id },
-      data: { nome, cpf, telefone, email, dataNascimento: nascimento },
+      data: {
+        nome,
+        cpf,
+        telefone,
+        email,
+        dataNascimento: nascimento,
+      },
     });
 
     res.redirect("/clientes?sucesso=" + encodeURIComponent("Cliente atualizado com sucesso."));

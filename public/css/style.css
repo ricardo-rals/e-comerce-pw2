@@ -327,6 +327,18 @@ td.acoes {
   margin-top: 0.25rem;
 }
 
+.form-filtro {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.form-filtro .campo {
+  margin-bottom: 0;
+}
+
 /* ── home cards ───────────────────────────────────────────────────────────── */
 .home-grid {
   display: grid;
@@ -355,6 +367,32 @@ td.acoes {
 .card h2 { font-size: 1.05rem; color: var(--texto); }
 
 .card p { font-size: 0.875rem; color: var(--texto-leve); }
+
+/* ── paginação ────────────────────────────────────────────────────────────── */
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.paginacao-info {
+  color: var(--texto-leve);
+  min-width: 120px;
+  text-align: center;
+}
+
+.paginacao-desabilitado {
+  color: var(--texto-leve);
+  opacity: 0.45;
+  padding: 0.45rem 1rem;
+  border-radius: var(--raio);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: default;
+}
 
 /* ── footer ───────────────────────────────────────────────────────────────── */
 .site-footer {

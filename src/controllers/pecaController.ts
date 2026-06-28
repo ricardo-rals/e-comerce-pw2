@@ -8,8 +8,22 @@ import { CATEGORIAS, TAMANHOS } from "../utils/enums.js";
 
 const enumsView = { CATEGORIAS, TAMANHOS };
 
-export async function listar(_req: Request, res: Response): Promise<void> {
+export async function listar(req: Request, res: Response): Promise<void> {
+  const busca = typeof req.query["busca"] === "string" ? req.query["busca"].trim() : "";
+  const categoria = typeof req.query["categoria"] === "string" ? req.query["categoria"].trim() : "";
+
+  const where: Prisma.PecaRoupaWhereInput = {};
+
+  if (busca) {
+    where.denominacao = { contains: busca };
+  }
+
+  if (categoria) {
+    where.categoria = categoria;
+  }
+
   const pecas = await prisma.pecaRoupa.findMany({
+    where,
     orderBy: [{ denominacao: "asc" }, { tamanho: "asc" }],
   });
 
@@ -18,6 +32,10 @@ export async function listar(_req: Request, res: Response): Promise<void> {
     pecas,
     pageCSS: "pecas.css",
     ...enumsView,
+    filtro: {
+      busca,
+      categoria,
+    },
   });
 }
 
@@ -96,7 +114,10 @@ export async function editar(req: Request, res: Response): Promise<void> {
 
   const peca = await prisma.pecaRoupa.findUnique({ where: { id } });
 
-  if (!peca) { res.redirect("/pecas"); return; }
+  if (!peca) {
+    res.redirect("/pecas");
+    return;
+  }
 
   res.render("pecas/form", {
     title: "Editar Peça",

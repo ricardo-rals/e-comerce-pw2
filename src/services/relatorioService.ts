@@ -31,7 +31,17 @@ export interface PecaMaisVendidaRelatorioItem {
   receitaObtida: number;
 }
 
-const categoriaSet = new Set<string>(CATEGORIAS.map((categoria) => categoria.valor));
+export interface FiltroData {
+  dataInicio?: Date;
+  dataFim?: Date;
+}
+
+export interface PaginaResultado<T> {
+  itens: T[];
+  total: number;
+}
+
+const categoriaSet = new Set<string>(CATEGORIAS.map((c) => c.valor));
 
 const formaPagamentoRotulos = Object.fromEntries(
   FORMAS_PAGAMENTO.map((forma) => [forma.valor, forma.rotulo])
@@ -51,47 +61,84 @@ function toNumber(value: unknown): number {
   return 0;
 }
 
+function buildDataVendaFilter(filtro: FiltroData) {
+  if (!filtro.dataInicio && !filtro.dataFim) {
+    return undefined;
+  }
+
+  return {
+    ...(filtro.dataInicio ? { gte: filtro.dataInicio } : {}),
+    ...(filtro.dataFim ? { lte: filtro.dataFim } : {}),
+  };
+}
+
 export function isCategoriaValida(categoria: string): categoria is Categoria {
   return categoriaSet.has(categoria);
 }
 
 export async function obterPecasPorCategoria(
-  categoria: Categoria
-): Promise<PecaPorCategoriaRelatorioItem[]> {
-  return prisma.pecaRoupa.findMany({
-    where: { categoria },
-    orderBy: [{ denominacao: "asc" }, { tamanho: "asc" }],
-    select: {
-      denominacao: true,
-      tamanho: true,
-      preco: true,
-      quantidadeEstoque: true,
-    },
-  });
+  categoria: Categoria,
+  skip: number,
+  take: number
+): Promise<PaginaResultado<PecaPorCategoriaRelatorioItem>> {
+  const where = { categoria };
+
+  const [itens, total] = await Promise.all([
+    prisma.pecaRoupa.findMany({
+      where,
+      orderBy: [{ denominacao: "asc" }, { tamanho: "asc" }],
+      select: {
+        denominacao: true,
+        tamanho: true,
+        preco: true,
+        quantidadeEstoque: true,
+      },
+      skip,
+      take,
+    }),
+    prisma.pecaRoupa.count({ where }),
+  ]);
+
+  return { itens, total };
 }
 
-export async function obterVendasFinalizadas(): Promise<VendaFinalizadaRelatorioItem[]> {
+export async function obterVendasFinalizadas(
+  filtro: FiltroData,
+  skip: number,
+  take: number
+): Promise<PaginaResultado<VendaFinalizadaRelatorioItem>> {
   const statusFinalizada: StatusVenda = "FINALIZADA";
+  const dataVendaFilter = buildDataVendaFilter(filtro);
 
-  const vendas = await prisma.venda.findMany({
-    where: { status: statusFinalizada },
-    include: {
-      cliente: {
-        select: {
-          nome: true,
-          telefone: true,
+  const whereClause = {
+    status: statusFinalizada,
+    ...(dataVendaFilter ? { dataVenda: dataVendaFilter } : {}),
+  };
+
+  const [total, vendas] = await Promise.all([
+    prisma.venda.count({ where: whereClause }),
+    prisma.venda.findMany({
+      where: whereClause,
+      include: {
+        cliente: {
+          select: {
+            nome: true,
+            telefone: true,
+          },
+        },
+        itens: {
+          select: {
+            quantidade: true,
+          },
         },
       },
-      itens: {
-        select: {
-          quantidade: true,
-        },
-      },
-    },
-    orderBy: { dataVenda: "desc" },
-  });
+      orderBy: { dataVenda: "desc" },
+      skip,
+      take,
+    }),
+  ]);
 
-  return vendas.map((venda) => {
+  const itens = vendas.map((venda) => {
     const quantidadeTotalPecas = venda.itens.reduce((soma, item) => soma + item.quantidade, 0);
 
     const formaPagamento = venda.formaPagamento as FormaPagamento;
@@ -105,39 +152,41 @@ export async function obterVendasFinalizadas(): Promise<VendaFinalizadaRelatorio
       quantidadeTotalPecas,
     };
   });
+
+  return { itens, total };
 }
 
-export async function obterPecasMaisVendidas(): Promise<PecaMaisVendidaRelatorioItem[]> {
+export async function obterPecasMaisVendidas(
+  filtro: FiltroData,
+  skip: number,
+  take: number
+): Promise<PaginaResultado<PecaMaisVendidaRelatorioItem>> {
+  const dataVendaFilter = buildDataVendaFilter(filtro);
+
+  const vendaWhere = {
+    status: "FINALIZADA",
+    ...(dataVendaFilter ? { dataVenda: dataVendaFilter } : {}),
+  };
+
   const agrupado = await prisma.itemVenda.groupBy({
     by: ["pecaRoupaId"],
-    where: {
-      venda: {
-        status: "FINALIZADA",
-      },
-    },
+    where: { venda: vendaWhere },
     _sum: {
       quantidade: true,
       valorItem: true,
     },
     orderBy: [
-      {
-        _sum: {
-          quantidade: "desc",
-        },
-      },
-      {
-        _sum: {
-          valorItem: "desc",
-        },
-      },
+      { _sum: { quantidade: "desc" } },
+      { _sum: { valorItem: "desc" } },
     ],
   });
 
+  const total = agrupado.length;
+  const paginado = agrupado.slice(skip, skip + take);
+
   const pecas = await prisma.pecaRoupa.findMany({
     where: {
-      id: {
-        in: agrupado.map((g) => g.pecaRoupaId),
-      },
+      id: { in: paginado.map((g) => g.pecaRoupaId) },
     },
     select: {
       id: true,
@@ -146,18 +195,18 @@ export async function obterPecasMaisVendidas(): Promise<PecaMaisVendidaRelatorio
     },
   });
 
-  const mapaPecas = new Map(
-    pecas.map((p) => [p.id, p])
-  );
+  const mapaPecas = new Map(pecas.map((p) => [p.id, p]));
 
-  return agrupado.map((g) => {
+  const itens = paginado.map((g) => {
     const peca = mapaPecas.get(g.pecaRoupaId)!;
 
     return {
       denominacao: peca.denominacao,
       tamanho: peca.tamanho,
       quantidadeTotalVendida: g._sum.quantidade ?? 0,
-      receitaObtida: Number(g._sum.valorItem ?? 0),
+      receitaObtida: toNumber(g._sum.valorItem),
     };
   });
+
+  return { itens, total };
 }

@@ -2,6 +2,21 @@
   <h1>Relatório de Vendas Finalizadas</h1>
 </div>
 
+<form method="GET" action="/relatorios/vendas-finalizadas" class="form-filtro">
+  <div class="campo">
+    <label for="dataInicio">Data inicial</label>
+    <input type="date" id="dataInicio" name="dataInicio" value="<%= filtro.dataInicio %>" />
+  </div>
+  <div class="campo">
+    <label for="dataFim">Data final</label>
+    <input type="date" id="dataFim" name="dataFim" value="<%= filtro.dataFim %>" />
+  </div>
+  <div class="form-acoes">
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+    <a href="/relatorios/vendas-finalizadas" class="btn btn-secundario">Limpar</a>
+  </div>
+</form>
+
 <div class="table-wrapper">
   <table>
     <thead>
@@ -34,3 +49,10 @@
     </tbody>
   </table>
 </div>
+
+<%- include('../partials/paginacao', {
+  pagina,
+  totalPaginas,
+  basePath: '/relatorios/vendas-finalizadas',
+  filtroParams: filtro,
+}) %>

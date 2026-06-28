@@ -3,6 +3,24 @@
   <a href="/vendas/novo" class="btn btn-primary">+ Nova Venda</a>
 </div>
 
+<form method="GET" action="/vendas" class="form-filtro">
+  <div class="campo">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">Todos</option>
+      <% for (const s of STATUS_VENDA) { %>
+        <option value="<%= s.valor %>" <%= filtro.status === s.valor ? 'selected' : '' %>>
+          <%= s.rotulo %>
+        </option>
+      <% } %>
+    </select>
+  </div>
+  <div class="form-acoes">
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+    <a href="/vendas" class="btn btn-secundario">Limpar</a>
+  </div>
+</form>
+
 <% if (vendas.length === 0) { %>
   <p class="vazio">Nenhuma venda cadastrada.</p>
 <% } else { %>

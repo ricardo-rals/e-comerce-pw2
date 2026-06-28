@@ -6,7 +6,7 @@ import prisma from "../prismaClient.js";
 
 import * as vendaService from "../services/vendaService.js";
 
-import { FORMAS_PAGAMENTO, FormaPagamento, StatusVenda } from "../utils/enums.js";
+import { FORMAS_PAGAMENTO, STATUS_VENDA, FormaPagamento, StatusVenda } from "../utils/enums.js";
 
 type VendaComCliente = Prisma.VendaGetPayload<{ include: { cliente: true } }>;
 
@@ -24,7 +24,9 @@ const formaPagamentoRotulos = Object.fromEntries(
 ) as Record<FormaPagamento, string>;
 
 function mensagemErroAmigavel(err: unknown, fallback: string): string {
-  if (err instanceof Error && err.message.trim().length > 0) return err.message;
+  if (err instanceof Error && err.message.trim().length > 0) {
+    return err.message;
+  }
 
   return fallback;
 }
@@ -47,8 +49,14 @@ function parseId(value: string | string[] | undefined): number {
   return parsed;
 }
 
-export async function listar(_req: Request, res: Response): Promise<void> {
+export async function listar(req: Request, res: Response): Promise<void> {
+  const status = typeof req.query["status"] === "string" ? req.query["status"].trim() : "";
+
+  const statusValidos = STATUS_VENDA.map(s => s.valor as string);
+  const where = (status && statusValidos.includes(status)) ? { status } : {};
+
   const vendas: VendaComCliente[] = await prisma.venda.findMany({
+    where,
     include: { cliente: true },
     orderBy: { id: "desc" },
   });
@@ -57,7 +65,9 @@ export async function listar(_req: Request, res: Response): Promise<void> {
     title: "Vendas",
     vendas,
     formaPagamentoRotulos,
+    STATUS_VENDA,
     pageCSS: "vendas.css",
+    filtro: { status },
   });
 }
 
@@ -220,7 +230,9 @@ export async function remover(req: Request, res: Response): Promise<void> {
         include: { itens: true },
       });
 
-      if (!venda) throw new Error("Venda não encontrada.");
+      if (!venda) {
+        throw new Error("Venda não encontrada.");
+      }
 
       if ((venda.status as StatusVenda) === "ABERTA") {
         for (const item of venda.itens) {

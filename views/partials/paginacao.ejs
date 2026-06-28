@@ -1,0 +1,25 @@
+<%
+  function pagUrl(p) {
+    const q = new URLSearchParams();
+    Object.entries(filtroParams).forEach(([k, v]) => {
+      if (v) q.set(k, v);
+    });
+    q.set('pagina', String(p));
+    return basePath + '?' + q.toString();
+  }
+%>
+<% if (totalPaginas > 1) { %>
+  <div class="paginacao">
+    <% if (pagina > 1) { %>
+      <a href="<%= pagUrl(pagina - 1) %>" class="btn btn-secundario">← Anterior</a>
+    <% } else { %>
+      <span class="paginacao-desabilitado">← Anterior</span>
+    <% } %>
+    <span class="paginacao-info">Página <%= pagina %> de <%= totalPaginas %></span>
+    <% if (pagina < totalPaginas) { %>
+      <a href="<%= pagUrl(pagina + 1) %>" class="btn btn-secundario">Próximo →</a>
+    <% } else { %>
+      <span class="paginacao-desabilitado">Próximo →</span>
+    <% } %>
+  </div>
+<% } %>

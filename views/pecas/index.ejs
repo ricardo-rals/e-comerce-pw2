@@ -3,6 +3,29 @@
   <a href="/pecas/novo" class="btn btn-primary">+ Nova Peça</a>
 </div>
 
+<form method="GET" action="/pecas" class="form-filtro">
+  <div class="campo">
+    <label for="busca">Buscar</label>
+    <input type="text" id="busca" name="busca" placeholder="Denominação..."
+           value="<%= filtro.busca %>" />
+  </div>
+  <div class="campo">
+    <label for="categoria">Categoria</label>
+    <select id="categoria" name="categoria">
+      <option value="">Todas</option>
+      <% for (const cat of CATEGORIAS) { %>
+        <option value="<%= cat.valor %>" <%= filtro.categoria === cat.valor ? 'selected' : '' %>>
+          <%= cat.rotulo %>
+        </option>
+      <% } %>
+    </select>
+  </div>
+  <div class="form-acoes">
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+    <a href="/pecas" class="btn btn-secundario">Limpar</a>
+  </div>
+</form>
+
 <% if (pecas.length === 0) { %>
   <p class="vazio">Nenhuma peça cadastrada.</p>
 <% } else { %>
