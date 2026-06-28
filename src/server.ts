@@ -14,6 +14,8 @@ import pecasRouter from "./routes/pecas.js";
 
 import vendasRouter from "./routes/vendas.js";
 
+import relatoriosRouter from "./routes/relatorios.js";
+
 const app = express();
 
 const PORT = process.env.PORT ?? 3000;
@@ -69,6 +71,8 @@ app.use("/clientes", clientesRouter);
 app.use("/pecas", pecasRouter);
 
 app.use("/vendas", vendasRouter);
+
+app.use("/relatorios", relatoriosRouter);
 
 app.get("/", (_req: Request, res: Response) => {
   res.render("index", { title: "Início" });

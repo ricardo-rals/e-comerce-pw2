@@ -1,0 +1,36 @@
+<div class="page-header">
+  <h1>Relatório de Vendas Finalizadas</h1>
+</div>
+
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>Data da Venda</th>
+        <th>Forma de Pagamento</th>
+        <th>Cliente</th>
+        <th>Telefone</th>
+        <th>Valor Total</th>
+        <th>Quantidade de Peças</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (vendas.length === 0) { %>
+        <tr>
+          <td colspan="6">Nenhuma venda finalizada encontrada.</td>
+        </tr>
+      <% } %>
+
+      <% for (const venda of vendas) { %>
+        <tr>
+          <td><%= formatarData(venda.dataVenda) %></td>
+          <td><%= venda.formaPagamentoRotulo %></td>
+          <td><%= venda.clienteNome %></td>
+          <td><%= venda.clienteTelefone %></td>
+          <td><%= formatarMoeda(venda.valorTotalCompra) %></td>
+          <td><%= venda.quantidadeTotalPecas %></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
