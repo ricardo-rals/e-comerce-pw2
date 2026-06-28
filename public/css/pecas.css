@@ -11,3 +11,25 @@ td:nth-child(5),
 th:nth-child(5) {
   text-align: center;
 }
+
+@media (max-width: 768px) {
+  /* Ocultar coluna Categoria */
+  th:nth-child(2),
+  td:nth-child(2) {
+    display: none;
+  }
+
+  /* Reduzir padding na coluna Estoque */
+  td:nth-child(5),
+  th:nth-child(5) {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+  }
+
+  /* Botões de ação empilhados */
+  td.acoes {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+}
