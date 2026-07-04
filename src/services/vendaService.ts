@@ -16,8 +16,6 @@ export interface AdicionarItemInput {
   quantidade: number;
 }
 
-// ── utilidade ────────────────────────────────────────────────────────────────
-
 export function calcularPercentualPorOrdem(ordem: number): number {
   if (ordem === 1) return 0;
 
@@ -27,8 +25,6 @@ export function calcularPercentualPorOrdem(ordem: number): number {
 
   return 15;
 }
-
-// ── helper interno (reutilizado dentro de transações) ────────────────────────
 
 async function _recalcularVenda(tx: TransactionClient, vendaId: number): Promise<void> {
   const itens = await tx.itemVenda.findMany({
@@ -61,8 +57,6 @@ async function _recalcularVenda(tx: TransactionClient, vendaId: number): Promise
     data: { valorTotal: Math.round(valorTotal * 100) / 100 },
   });
 }
-
-// ── funções públicas ─────────────────────────────────────────────────────────
 
 export async function criarVenda({
   clienteId,

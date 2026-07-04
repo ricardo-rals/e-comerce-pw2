@@ -1,19 +1,11 @@
 import "dotenv/config";
-
 import express, { Request, Response, NextFunction } from "express";
-
 import expressLayouts from "express-ejs-layouts";
-
 import methodOverride from "method-override";
-
 import path from "path";
-
 import clientesRouter from "./routes/clientes.js";
-
 import pecasRouter from "./routes/pecas.js";
-
 import vendasRouter from "./routes/vendas.js";
-
 import relatoriosRouter from "./routes/relatorios.js";
 
 const app = express();
@@ -21,15 +13,12 @@ const app = express();
 const PORT = process.env.PORT ?? 3000;
 
 app.set("view engine", "ejs");
-
-app.set("views", path.join(__dirname, "..", "views"));
+app.set("views", path.join(process.cwd(), "views"));
 
 app.use(expressLayouts);
 
 app.set("layout", "layout");
-
-app.use(express.static(path.join(__dirname, "..", "public")));
-
+app.use(express.static(path.join(process.cwd(), "public")));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
@@ -46,7 +35,6 @@ app.use(
   })
 );
 
-// Middleware de flash e helpers de formatação disponíveis em todas as views
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.locals["currentPath"]   = req.path;
 

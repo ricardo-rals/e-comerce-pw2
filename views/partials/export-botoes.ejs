@@ -1,0 +1,14 @@
+<%
+  function _expUrl(fmt) {
+    const q = new URLSearchParams();
+    Object.entries(exportBase || {}).forEach(([k, v]) => { if (v) q.set(k, String(v)); });
+    q.set('formato', fmt);
+    return exportUrl + '?' + q.toString();
+  }
+%>
+<div class="export-botoes">
+  <span class="export-label">Exportar:</span>
+  <a class="btn btn-secundario btn-export" href="<%= _expUrl('pdf') %>">PDF</a>
+  <a class="btn btn-secundario btn-export" href="<%= _expUrl('xlsx') %>">XLS</a>
+  <a class="btn btn-secundario btn-export" href="<%= _expUrl('csv') %>">CSV</a>
+</div>

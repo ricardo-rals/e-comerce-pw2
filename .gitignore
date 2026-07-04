@@ -1,7 +1,21 @@
+# dependências
 node_modules/
+
+# build compilado
 dist/
+
+# variáveis de ambiente (contém segredos — não versionar)
 .env
-dev.db
-dev.db-journal
+
+# banco de dados SQLite gerado localmente
+prisma/dev.db
+prisma/dev.db-journal
+prisma/dev.db-wal
+prisma/dev.db-shm
+
+# padrão genérico (garante que outros arquivos .db não entrem)
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
+docs

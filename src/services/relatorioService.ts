@@ -8,8 +8,9 @@ import {
   StatusVenda,
 } from "../utils/enums.js";
 
-export interface PecaPorCategoriaRelatorioItem {
+export interface EstoqueRelatorioItem {
   denominacao: string;
+  categoria: string;
   tamanho: string;
   preco: number;
   quantidadeEstoque: number;
@@ -76,19 +77,20 @@ export function isCategoriaValida(categoria: string): categoria is Categoria {
   return categoriaSet.has(categoria);
 }
 
-export async function obterPecasPorCategoria(
-  categoria: Categoria,
-  skip: number,
-  take: number
-): Promise<PaginaResultado<PecaPorCategoriaRelatorioItem>> {
-  const where = { categoria };
+export async function obterEstoque(
+  categoria: Categoria | null,
+  skip = 0,
+  take?: number
+): Promise<PaginaResultado<EstoqueRelatorioItem>> {
+  const where = categoria ? { categoria } : {};
 
   const [itens, total] = await Promise.all([
     prisma.pecaRoupa.findMany({
       where,
-      orderBy: [{ denominacao: "asc" }, { tamanho: "asc" }],
+      orderBy: [{ categoria: "asc" }, { denominacao: "asc" }, { tamanho: "asc" }],
       select: {
         denominacao: true,
+        categoria: true,
         tamanho: true,
         preco: true,
         quantidadeEstoque: true,
@@ -104,8 +106,8 @@ export async function obterPecasPorCategoria(
 
 export async function obterVendasFinalizadas(
   filtro: FiltroData,
-  skip: number,
-  take: number
+  skip = 0,
+  take?: number
 ): Promise<PaginaResultado<VendaFinalizadaRelatorioItem>> {
   const statusFinalizada: StatusVenda = "FINALIZADA";
   const dataVendaFilter = buildDataVendaFilter(filtro);
@@ -158,8 +160,8 @@ export async function obterVendasFinalizadas(
 
 export async function obterPecasMaisVendidas(
   filtro: FiltroData,
-  skip: number,
-  take: number
+  skip = 0,
+  take?: number
 ): Promise<PaginaResultado<PecaMaisVendidaRelatorioItem>> {
   const dataVendaFilter = buildDataVendaFilter(filtro);
 
@@ -182,7 +184,7 @@ export async function obterPecasMaisVendidas(
   });
 
   const total = agrupado.length;
-  const paginado = agrupado.slice(skip, skip + take);
+  const paginado = take !== undefined ? agrupado.slice(skip, skip + take) : agrupado;
 
   const pecas = await prisma.pecaRoupa.findMany({
     where: {

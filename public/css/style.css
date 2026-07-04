@@ -347,6 +347,26 @@ td.acoes {
   margin-bottom: 0;
 }
 
+/* ── exportar relatórios ──────────────────────────────────────────────────── */
+.export-botoes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.export-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--texto-leve);
+}
+
+.btn-export {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+}
+
 /* ── home cards ───────────────────────────────────────────────────────────── */
 .home-grid {
   display: grid;

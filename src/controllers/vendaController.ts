@@ -60,7 +60,7 @@ function parseDataFiltro(raw: unknown, hora: string): Date | undefined {
   if (typeof raw !== "string" || raw === "") {
     return undefined;
   }
-  const d = new Date(`${raw}T${hora}`);
+  const d = new Date(`${raw}T${hora}Z`); // Z: trata a data "só dia" como UTC (igual ao armazenado/exibido)
   return isNaN(d.getTime()) ? undefined : d;
 }
 
@@ -147,7 +147,7 @@ export async function criar(req: Request, res: Response): Promise<void> {
   try {
     const venda = await vendaService.criarVenda({
       clienteId: parseId(clienteId),
-      dataVenda: new Date(`${dataVenda}T00:00:00`),
+      dataVenda: new Date(`${dataVenda}T00:00:00Z`),
       formaPagamento,
     });
 

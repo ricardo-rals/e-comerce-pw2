@@ -17,6 +17,11 @@
   </div>
 </form>
 
+<%- include('../partials/export-botoes', {
+  exportUrl: '/relatorios/vendas-finalizadas/export',
+  exportBase: filtro,
+}) %>
+
 <div class="table-wrapper">
   <table>
     <thead>

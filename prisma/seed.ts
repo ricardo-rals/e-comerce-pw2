@@ -9,8 +9,6 @@ import type {
 
 const prisma = new PrismaClient();
 
-// ── regras de negócio espelhadas do vendaService ──────────────────────────────
-
 function calcDesconto(ordem: number): number {
   if (ordem === 1) return 0;
   if (ordem === 2) return 5;
@@ -32,7 +30,6 @@ function pecaKey(denominacao: string, tamanho: string): string {
   return `${denominacao}|${tamanho}`;
 }
 
-// ── tipos ─────────────────────────────────────────────────────────────────────
 
 interface PecaSeed {
   denominacao: string;
@@ -68,7 +65,7 @@ interface VendaSeed {
 // garante que após criar todas as vendas o saldo seja o valor "final desejado"
 
 const pecas: PecaSeed[] = [
-  // CAMISA  (P sold 2, M sold 2, G sold 2)
+
   {
     denominacao: "Camisa Social Slim",
     categoria: "CAMISA",

@@ -1,0 +1,81 @@
+<div class="page-header">
+  <h1>Relatório de Estoque (Balanço)</h1>
+</div>
+
+<form method="GET" action="/relatorios/estoque" class="form-filtro">
+  <div class="campo">
+    <label for="categoria">Categoria</label>
+    <select id="categoria" name="categoria">
+      <option value="">Todas as categorias</option>
+      <% for (const categoria of CATEGORIAS) { %>
+        <option
+          value="<%= categoria.valor %>"
+          <%= categoriaSelecionada === categoria.valor ? 'selected' : '' %>
+        >
+          <%= categoria.rotulo %>
+        </option>
+      <% } %>
+    </select>
+  </div>
+
+  <div class="form-acoes">
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+    <a href="/relatorios/estoque" class="btn btn-secundario">Limpar</a>
+  </div>
+</form>
+
+<%- include('../partials/export-botoes', {
+  exportUrl: '/relatorios/estoque/export',
+  exportBase: { categoria: categoriaSelecionada },
+}) %>
+
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>Denominação</th>
+        <th>Categoria</th>
+        <th>Tamanho</th>
+        <th>Preço</th>
+        <th>Estoque</th>
+        <th>Valor em Estoque</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (pecas.length === 0) { %>
+        <tr>
+          <td colspan="6">Nenhuma peça encontrada.</td>
+        </tr>
+      <% } %>
+
+      <% for (const peca of pecas) { %>
+        <tr>
+          <td><%= peca.denominacao %></td>
+          <td><%= peca.categoriaRotulo %></td>
+          <td><%= peca.tamanho %></td>
+          <td><%= formatarMoeda(peca.preco) %></td>
+          <td<%= peca.quantidadeEstoque === 0 ? ' class="estoque-zero"' : '' %>><%= peca.quantidadeEstoque %></td>
+          <td><%= formatarMoeda(Math.round(peca.preco * peca.quantidadeEstoque * 100) / 100) %></td>
+        </tr>
+      <% } %>
+    </tbody>
+    <% if (pecas.length > 0) {
+         const totalEstoque      = pecas.reduce((s, p) => s + p.quantidadeEstoque, 0);
+         const totalValorEstoque = pecas.reduce((s, p) => s + p.preco * p.quantidadeEstoque, 0);
+         const rotuloTotal       = paginacao.totalPaginas > 1 ? 'Total da página' : 'Total';
+    %>
+    <tfoot>
+      <tr>
+        <td colspan="4"><strong><%= rotuloTotal %></strong></td>
+        <td><strong><%= totalEstoque %></strong></td>
+        <td><strong><%= formatarMoeda(Math.round(totalValorEstoque * 100) / 100) %></strong></td>
+      </tr>
+    </tfoot>
+    <% } %>
+  </table>
+</div>
+
+<%- include('../partials/paginacao', {
+  paginacao,
+  queryBase: { categoria: categoriaSelecionada },
+}) %>
