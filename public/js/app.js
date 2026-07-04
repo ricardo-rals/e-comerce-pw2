@@ -1,14 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Confirmação de exclusão via data-confirm nos formulários
-  document.querySelectorAll('form[data-confirm]').forEach((form) => {
-    form.addEventListener('submit', (e) => {
-      const mensagem = form.getAttribute('data-confirm');
-
-      if (!confirm(mensagem)) {
+  // Confirmação de exclusão via delegação (funciona também em linhas inseridas
+  // dinamicamente pela busca ao vivo).
+  document.addEventListener('submit', (e) => {
+    const form = e.target;
+    if (form && form.matches && form.matches('form[data-confirm]')) {
+      if (!confirm(form.getAttribute('data-confirm'))) {
         e.preventDefault();
       }
-    });
+    }
   });
 
   // Auto-dismiss das mensagens flash após 5 segundos
@@ -43,6 +43,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const campoTelefone = document.getElementById('telefone');
   if (campoTelefone) campoTelefone.addEventListener('input', mascaraTelefone);
+
+  // Busca dinâmica: formulários com data-live recarregam só a tabela alvo.
+  document.querySelectorAll('form[data-live]').forEach((form) => {
+    const alvo = document.querySelector(form.getAttribute('data-alvo'));
+    if (!alvo) return;
+
+    let timer;
+
+    const buscar = () => {
+      const params = new URLSearchParams(new FormData(form));
+      params.set('parcial', '1');
+
+      fetch(form.action + '?' + params.toString())
+        .then((r) => r.text())
+        .then((html) => { alvo.innerHTML = html; })
+        .catch(() => { /* silencioso: mantém a tabela atual */ });
+    };
+
+    const agendar = () => {
+      clearTimeout(timer);
+      timer = setTimeout(buscar, 250);
+    };
+
+    form.addEventListener('input', agendar);
+    form.addEventListener('change', agendar);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearTimeout(timer);
+      buscar();
+    });
+  });
 
   // Dropdown de relatórios
   const dropdownBtn = document.querySelector('.nav-dropdown-btn');

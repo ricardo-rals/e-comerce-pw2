@@ -184,7 +184,7 @@ export async function finalizarVenda(vendaId: number): Promise<Venda> {
 
   if (!venda) throw new Error("Venda não encontrada.");
 
-  if (venda.status === "FINALIZADA") throw new Error("A venda já está finalizada.");
+  if (venda.status !== "ABERTA") throw new Error("Só é possível finalizar vendas em aberto.");
 
   if (venda.itens.length === 0)
     throw new Error("Não é possível finalizar uma venda sem itens.");
@@ -192,5 +192,79 @@ export async function finalizarVenda(vendaId: number): Promise<Venda> {
   return prisma.venda.update({
     where: { id: vendaId },
     data: { status: "FINALIZADA" },
+  });
+}
+
+// ── estorno / cancelamento / troca ───────────────────────────────────────────
+
+async function _estornarEstoque(
+  tx: TransactionClient,
+  itens: { pecaRoupaId: number; quantidade: number }[]
+): Promise<void> {
+  for (const item of itens) {
+    await tx.pecaRoupa.update({
+      where: { id: item.pecaRoupaId },
+      data: { quantidadeEstoque: { increment: item.quantidade } },
+    });
+  }
+}
+
+// Cancela (ABERTA) ou devolve (FINALIZADA) a venda: estorna o estoque e marca o
+// status, mantendo o registro e os itens para o histórico.
+export async function cancelarVenda(
+  vendaId: number,
+  novoStatus: "CANCELADA" | "DEVOLVIDA"
+): Promise<Venda> {
+  return prisma.$transaction(async (tx) => {
+    const venda = await tx.venda.findUnique({
+      where: { id: vendaId },
+      include: { itens: true },
+    });
+
+    if (!venda) throw new Error("Venda não encontrada.");
+
+    if (venda.status === "CANCELADA" || venda.status === "DEVOLVIDA")
+      throw new Error("Esta venda já foi cancelada ou devolvida.");
+
+    await _estornarEstoque(tx, venda.itens);
+
+    return tx.venda.update({
+      where: { id: vendaId },
+      data: { status: novoStatus },
+    });
+  });
+}
+
+// Troca: devolve (estorna) a venda finalizada e abre uma nova venda vinculada
+// para o mesmo cliente, onde as peças de troca serão incluídas.
+export async function trocarVenda(vendaId: number): Promise<Venda> {
+  return prisma.$transaction(async (tx) => {
+    const venda = await tx.venda.findUnique({
+      where: { id: vendaId },
+      include: { itens: true },
+    });
+
+    if (!venda) throw new Error("Venda não encontrada.");
+
+    if (venda.status !== "FINALIZADA")
+      throw new Error("Só é possível registrar troca de uma venda finalizada.");
+
+    await _estornarEstoque(tx, venda.itens);
+
+    await tx.venda.update({
+      where: { id: vendaId },
+      data: { status: "DEVOLVIDA" },
+    });
+
+    return tx.venda.create({
+      data: {
+        clienteId: venda.clienteId,
+        dataVenda: new Date(),
+        formaPagamento: venda.formaPagamento,
+        status: "ABERTA",
+        valorTotal: 0,
+        vendaOrigemId: venda.id,
+      },
+    });
   });
 }

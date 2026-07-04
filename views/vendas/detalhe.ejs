@@ -3,10 +3,14 @@
     <h1>Venda #<%= venda.id %></h1>
     <p class="venda-subtitulo">Cliente: <strong><%= venda.cliente.nome %></strong></p>
   </div>
-  <span class="status-badge <%= venda.status === 'ABERTA' ? 'status-aberta' : 'status-finalizada' %>">
-    <%= venda.status === 'ABERTA' ? 'Aberta' : 'Finalizada' %>
+  <span class="status-badge status-<%= venda.status.toLowerCase() %>">
+    <%= (STATUS_VENDA.find(s => s.valor === venda.status) || {}).rotulo || venda.status %>
   </span>
 </div>
+
+<% if (venda.vendaOrigemId) { %>
+  <div class="alert alert-info">Esta venda é uma <strong>troca</strong> da venda #<%= venda.vendaOrigemId %>.</div>
+<% } %>
 
 <section class="venda-resumo">
   <div class="resumo-item">
@@ -110,15 +114,28 @@
     </form>
 
     <form method="POST" action="/vendas/<%= venda.id %>" class="form-inline"
-          data-confirm="Deseja excluir a venda #<%= venda.id %>? Esta ação remove todos os itens.">
+          data-confirm="Cancelar a venda #<%= venda.id %>? O estoque será estornado.">
       <input type="hidden" name="_method" value="DELETE" />
-      <button type="submit" class="btn btn-perigo">Excluir Venda</button>
+      <button type="submit" class="btn btn-perigo">Cancelar Venda</button>
     </form>
 
     <a href="/vendas" class="btn btn-secundario">Voltar para lista</a>
   </section>
 <% } else { %>
   <section class="bloco-acoes-venda">
+    <% if (venda.status === 'FINALIZADA') { %>
+      <form method="POST" action="/vendas/<%= venda.id %>/troca" class="form-inline"
+            data-confirm="Registrar troca da venda #<%= venda.id %>? Ela será devolvida e uma nova venda será aberta.">
+        <button type="submit" class="btn btn-primary">Registrar Troca</button>
+      </form>
+
+      <form method="POST" action="/vendas/<%= venda.id %>" class="form-inline"
+            data-confirm="Devolver a venda #<%= venda.id %>? O estoque será estornado.">
+        <input type="hidden" name="_method" value="DELETE" />
+        <button type="submit" class="btn btn-perigo">Devolver Venda</button>
+      </form>
+    <% } %>
+
     <a href="/vendas" class="btn btn-secundario">Voltar para lista</a>
   </section>
 <% } %>

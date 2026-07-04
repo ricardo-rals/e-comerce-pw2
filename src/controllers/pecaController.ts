@@ -43,7 +43,7 @@ export async function listar(req: Request, res: Response): Promise<void> {
     prisma.pecaRoupa.count({ where }),
   ]);
 
-  res.render("pecas/index", {
+  const dados = {
     title: "Peças de Roupa",
     pecas,
     pageCSS: "pecas.css",
@@ -58,7 +58,15 @@ export async function listar(req: Request, res: Response): Promise<void> {
       totalRegistros,
       porPagina,
     },
-  });
+  };
+
+  // busca dinâmica: renderiza só a tabela (sem layout)
+  if (req.query["parcial"]) {
+    res.render("pecas/_tabela", { ...dados, layout: false });
+    return;
+  }
+
+  res.render("pecas/index", dados);
 }
 
 export async function novo(_req: Request, res: Response): Promise<void> {

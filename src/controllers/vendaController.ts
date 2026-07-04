@@ -119,6 +119,7 @@ export async function listar(req: Request, res: Response): Promise<void> {
 
 export async function novo(_req: Request, res: Response): Promise<void> {
   const clientes = await prisma.cliente.findMany({
+    where: { ativo: true },
     orderBy: { nome: "asc" },
   });
 
@@ -191,6 +192,7 @@ export async function detalhe(req: Request, res: Response): Promise<void> {
       venda,
       pecas,
       FORMAS_PAGAMENTO,
+      STATUS_VENDA,
       formaPagamentoRotulos,
       isAberta: (venda.status as StatusVenda) === "ABERTA",
       pageCSS: "vendas.css",
@@ -266,36 +268,54 @@ export async function finalizar(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function remover(req: Request, res: Response): Promise<void> {
+// Cancela (aberta) ou devolve (finalizada) a venda, estornando o estoque e
+// mantendo o registro no histórico (soft delete).
+export async function cancelar(req: Request, res: Response): Promise<void> {
   try {
     const vendaId = parseId(req.params["id"]);
 
-    await prisma.$transaction(async (tx) => {
-      const venda = await tx.venda.findUnique({
-        where: { id: vendaId },
-        include: { itens: true },
-      });
+    const venda = await prisma.venda.findUnique({ where: { id: vendaId } });
 
-      if (!venda) {
-        throw new Error("Venda não encontrada.");
-      }
+    if (!venda) {
+      throw new Error("Venda não encontrada.");
+    }
 
-      if ((venda.status as StatusVenda) === "ABERTA") {
-        for (const item of venda.itens) {
-          await tx.pecaRoupa.update({
-            where: { id: item.pecaRoupaId },
-            data: { quantidadeEstoque: { increment: item.quantidade } },
-          });
-        }
-      }
+    const novoStatus: "CANCELADA" | "DEVOLVIDA" =
+      (venda.status as StatusVenda) === "FINALIZADA" ? "DEVOLVIDA" : "CANCELADA";
 
-      await tx.venda.delete({ where: { id: vendaId } });
-    });
+    await vendaService.cancelarVenda(vendaId, novoStatus);
 
-    res.redirect("/vendas?sucesso=" + encodeURIComponent("Venda removida com sucesso."));
+    const msg =
+      novoStatus === "DEVOLVIDA"
+        ? `Venda #${vendaId} devolvida e estoque estornado.`
+        : `Venda #${vendaId} cancelada e estoque estornado.`;
+
+    res.redirect("/vendas?sucesso=" + encodeURIComponent(msg));
   } catch (err) {
-    const erro = mensagemErroAmigavel(err, "Não foi possível remover a venda.");
+    const erro = mensagemErroAmigavel(err, "Não foi possível cancelar a venda.");
 
     res.redirect("/vendas?erro=" + encodeURIComponent(erro));
+  }
+}
+
+// Registra troca: devolve a venda finalizada e abre uma nova venda vinculada.
+export async function troca(req: Request, res: Response): Promise<void> {
+  const vendaIdRaw = req.params["id"];
+
+  try {
+    const vendaId = parseId(vendaIdRaw);
+
+    const nova = await vendaService.trocarVenda(vendaId);
+
+    res.redirect(
+      `/vendas/${nova.id}?sucesso=` +
+        encodeURIComponent(`Troca da venda #${vendaId} iniciada. Adicione as peças da nova venda.`)
+    );
+  } catch (err) {
+    const vendaId = Number(vendaIdRaw);
+
+    const erro = mensagemErroAmigavel(err, "Não foi possível registrar a troca.");
+
+    res.redirect(`/vendas/${vendaId}?erro=` + encodeURIComponent(erro));
   }
 }

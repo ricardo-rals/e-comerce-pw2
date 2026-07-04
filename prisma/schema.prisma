@@ -14,6 +14,7 @@ model Cliente {
   telefone       String
   email          String
   dataNascimento DateTime
+  ativo          Boolean  @default(true) // soft delete: inativo some das listagens, mantém histórico
   vendas         Venda[]
   criadoEm       DateTime @default(now())
   atualizadoEm   DateTime @updatedAt
@@ -37,11 +38,15 @@ model Venda {
   id             Int         @id @default(autoincrement())
   dataVenda      DateTime
   formaPagamento String      // CARTAO_CREDITO, PIX
-  status         String      @default("ABERTA") // ABERTA, FINALIZADA
+  status         String      @default("ABERTA") // ABERTA, FINALIZADA, CANCELADA, DEVOLVIDA
   valorTotal     Float       @default(0)
   cliente        Cliente     @relation(fields: [clienteId], references: [id])
   clienteId      Int
   itens          ItemVenda[]
+  // Troca: nova venda aponta para a venda devolvida que ela substitui
+  vendaOrigem    Venda?      @relation("TrocaVenda", fields: [vendaOrigemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vendaOrigemId  Int?
+  trocas         Venda[]     @relation("TrocaVenda")
   criadoEm       DateTime    @default(now())
   atualizadoEm   DateTime    @updatedAt
 }

@@ -6,7 +6,12 @@ import prisma from "../prismaClient.js";
 
 import { validarCPF, validarTelefone } from "../utils/validators.js";
 
+import { STATUS_VENDA, FORMAS_PAGAMENTO } from "../utils/enums.js";
+
 const TAMANHOS_PAGINA_VALIDOS = [5, 10, 20, 50, 100] as const;
+
+const statusRotulos = Object.fromEntries(STATUS_VENDA.map((s) => [s.valor, s.rotulo]));
+const formaPagamentoRotulos = Object.fromEntries(FORMAS_PAGAMENTO.map((f) => [f.valor, f.rotulo]));
 
 function parsePorPagina(raw: unknown): number {
   const n = Number(raw);
@@ -15,17 +20,19 @@ function parsePorPagina(raw: unknown): number {
 
 export async function listar(req: Request, res: Response): Promise<void> {
   const busca = typeof req.query["busca"] === "string" ? req.query["busca"].trim() : "";
+  const inativos = req.query["inativos"] === "1";
   const pagina = Math.max(1, Number(req.query["pagina"]) || 1);
   const porPagina = parsePorPagina(req.query["porPagina"]);
 
-  const where = busca
-    ? {
-      OR: [
-        { nome: { contains: busca } },
-        { cpf: { contains: busca } },
-      ],
-    }
-    : {};
+  // ativos por padrão; inativos apenas quando o toggle está marcado
+  const where: Prisma.ClienteWhereInput = { ativo: !inativos };
+
+  if (busca) {
+    where.OR = [
+      { nome: { contains: busca } },
+      { cpf: { contains: busca } },
+    ];
+  }
 
   const skip = (pagina - 1) * porPagina;
 
@@ -39,18 +46,26 @@ export async function listar(req: Request, res: Response): Promise<void> {
     prisma.cliente.count({ where }),
   ]);
 
-  res.render("clientes/index", {
+  const dados = {
     title: "Clientes",
     clientes,
     pageCSS: "clientes.css",
-    filtro: { busca },
+    filtro: { busca, inativos: inativos ? "1" : "" },
     paginacao: {
       paginaAtual: pagina,
       totalPaginas: Math.ceil(totalRegistros / porPagina) || 1,
       totalRegistros,
       porPagina,
     },
-  });
+  };
+
+  // busca dinâmica: renderiza só a tabela (sem layout)
+  if (req.query["parcial"]) {
+    res.render("clientes/_tabela", { ...dados, layout: false });
+    return;
+  }
+
+  res.render("clientes/index", dados);
 }
 
 export async function exibirFormularioNovo(_req: Request, res: Response): Promise<void> {
@@ -207,20 +222,57 @@ export async function atualizar(req: Request, res: Response): Promise<void> {
   }
 }
 
+// Soft delete: inativa o cliente (some das listagens) preservando o histórico.
 export async function remover(req: Request, res: Response): Promise<void> {
   const id = Number(req.params["id"]);
 
-  const totalVendas = await prisma.venda.count({ where: { clienteId: id } });
+  await prisma.cliente.update({ where: { id }, data: { ativo: false } });
 
-  if (totalVendas > 0) {
-    res.redirect(
-      "/clientes?erro=" + encodeURIComponent("Não é possível remover um cliente com vendas associadas.")
-    );
+  res.redirect(
+    "/clientes?sucesso=" + encodeURIComponent("Cliente inativado. O histórico de compras foi preservado.")
+  );
+}
 
+export async function reativar(req: Request, res: Response): Promise<void> {
+  const id = Number(req.params["id"]);
+
+  await prisma.cliente.update({ where: { id }, data: { ativo: true } });
+
+  res.redirect("/clientes?inativos=1&sucesso=" + encodeURIComponent("Cliente reativado."));
+}
+
+export async function historico(req: Request, res: Response): Promise<void> {
+  const id = Number(req.params["id"]);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    res.redirect("/clientes");
     return;
   }
 
-  await prisma.cliente.delete({ where: { id } });
+  const cliente = await prisma.cliente.findUnique({ where: { id } });
 
-  res.redirect("/clientes?sucesso=" + encodeURIComponent("Cliente removido com sucesso."));
+  if (!cliente) {
+    res.redirect("/clientes?erro=" + encodeURIComponent("Cliente não encontrado."));
+    return;
+  }
+
+  const vendas = await prisma.venda.findMany({
+    where: { clienteId: id },
+    include: { _count: { select: { itens: true } } },
+    orderBy: { dataVenda: "desc" },
+  });
+
+  const totalComprado = vendas
+    .filter((v) => v.status === "FINALIZADA")
+    .reduce((s, v) => s + v.valorTotal, 0);
+
+  res.render("clientes/historico", {
+    title: `Histórico — ${cliente.nome}`,
+    cliente,
+    vendas,
+    totalComprado: Math.round(totalComprado * 100) / 100,
+    statusRotulos,
+    formaPagamentoRotulos,
+    pageCSS: "clientes.css",
+  });
 }

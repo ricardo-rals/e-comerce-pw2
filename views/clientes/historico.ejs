@@ -1,0 +1,56 @@
+<div class="page-header">
+  <h1>Histórico de <%= cliente.nome %></h1>
+  <a href="/clientes" class="btn btn-secundario">← Voltar</a>
+</div>
+
+<section class="hist-cliente">
+  <p>
+    <strong>CPF:</strong> <%= cliente.cpf %> ·
+    <strong>Telefone:</strong> <%= cliente.telefone %> ·
+    <strong>E-mail:</strong> <%= cliente.email %>
+    <% if (!cliente.ativo) { %><span class="tag-inativo">inativo</span><% } %>
+  </p>
+  <p><strong>Total comprado (vendas finalizadas):</strong> <%= formatarMoeda(totalComprado) %></p>
+</section>
+
+<% if (vendas.length === 0) { %>
+  <p class="vazio">Este cliente ainda não possui compras.</p>
+<% } else { %>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Data</th>
+          <th>Forma de Pagamento</th>
+          <th>Status</th>
+          <th>Itens</th>
+          <th>Valor Total</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const v of vendas) { %>
+          <tr>
+            <td>
+              <strong>#<%= v.id %></strong>
+              <% if (v.vendaOrigemId) { %><br><small class="texto-leve">troca da #<%= v.vendaOrigemId %></small><% } %>
+            </td>
+            <td><%= formatarData(v.dataVenda) %></td>
+            <td><%= formaPagamentoRotulos[v.formaPagamento] || v.formaPagamento %></td>
+            <td>
+              <span class="status-badge status-<%= v.status.toLowerCase() %>">
+                <%= statusRotulos[v.status] || v.status %>
+              </span>
+            </td>
+            <td><%= v._count.itens %></td>
+            <td><strong><%= formatarMoeda(v.valorTotal) %></strong></td>
+            <td class="acoes">
+              <a href="/vendas/<%= v.id %>" class="btn btn-secundario">Detalhe</a>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<% } %>

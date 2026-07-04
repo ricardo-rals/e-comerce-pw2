@@ -48,6 +48,7 @@
       <tbody>
         <% for (const v of vendas) {
              const formaPagamento = formaPagamentoRotulos[v.formaPagamento] ?? v.formaPagamento;
+             const statusRotulo = (STATUS_VENDA.find(s => s.valor === v.status) || {}).rotulo || v.status;
         %>
           <tr>
             <td><strong>#<%= v.id %></strong></td>
@@ -55,19 +56,33 @@
             <td><%= v.cliente.nome %></td>
             <td><%= formaPagamento %></td>
             <td>
-              <span class="status-badge <%= v.status === 'ABERTA' ? 'status-aberta' : 'status-finalizada' %>">
-                <%= v.status === 'ABERTA' ? 'Aberta' : 'Finalizada' %>
+              <span class="status-badge status-<%= v.status.toLowerCase() %>">
+                <%= statusRotulo %>
               </span>
             </td>
             <td><strong><%= formatarMoeda(v.valorTotal) %></strong></td>
             <td class="acoes">
               <a href="/vendas/<%= v.id %>" class="btn btn-secundario">Detalhe</a>
-              <form method="POST" action="/vendas/<%= v.id %>"
-                    class="form-inline"
-                    data-confirm="Deseja excluir a venda #<%= v.id %>?">
-                <input type="hidden" name="_method" value="DELETE" />
-                <button type="submit" class="btn btn-perigo">Excluir</button>
-              </form>
+              <% if (v.status === 'ABERTA') { %>
+                <form method="POST" action="/vendas/<%= v.id %>"
+                      class="form-inline"
+                      data-confirm="Cancelar a venda #<%= v.id %>? O estoque será estornado.">
+                  <input type="hidden" name="_method" value="DELETE" />
+                  <button type="submit" class="btn btn-perigo">Cancelar</button>
+                </form>
+              <% } else if (v.status === 'FINALIZADA') { %>
+                <form method="POST" action="/vendas/<%= v.id %>/troca"
+                      class="form-inline"
+                      data-confirm="Registrar troca da venda #<%= v.id %>? Ela será devolvida e uma nova venda será aberta.">
+                  <button type="submit" class="btn btn-secundario">Troca</button>
+                </form>
+                <form method="POST" action="/vendas/<%= v.id %>"
+                      class="form-inline"
+                      data-confirm="Devolver a venda #<%= v.id %>? O estoque será estornado.">
+                  <input type="hidden" name="_method" value="DELETE" />
+                  <button type="submit" class="btn btn-perigo">Devolver</button>
+                </form>
+              <% } %>
             </td>
           </tr>
         <% } %>

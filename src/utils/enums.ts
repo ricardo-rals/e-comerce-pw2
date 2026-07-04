@@ -26,6 +26,8 @@ export const FORMAS_PAGAMENTO = [
 export const STATUS_VENDA = [
   { valor: 'ABERTA',     rotulo: 'Aberta'     },
   { valor: 'FINALIZADA', rotulo: 'Finalizada' },
+  { valor: 'CANCELADA',  rotulo: 'Cancelada'  },
+  { valor: 'DEVOLVIDA',  rotulo: 'Devolvida'  },
 ] as const;
 
 export type Categoria      = typeof CATEGORIAS[number]['valor'];

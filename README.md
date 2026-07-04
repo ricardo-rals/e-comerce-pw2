@@ -91,6 +91,10 @@ Recursos que **não** eram exigidos pelo minimundo, incluídos para qualidade de
 | Confirmação de exclusão        | Diálogo de confirmação antes de qualquer exclusão                                                      |
 | Exportação de relatórios       | Download dos três relatórios em PDF, XLS (.xlsx) e CSV, respeitando os filtros aplicados                 |
 | Balanço de estoque                | Relatório de estoque exibe o valor total em estoque por peça; o filtro de categoria passou a ser opcional |
+| Soft delete de clientes           | Inativação em vez de exclusão: cliente some das listagens mas preserva o histórico; toggle de inativos + reativação |
+| Busca dinâmica                    | Listagens de clientes e peças filtram enquanto o usuário digita (sem recarregar a página)                |
+| Devoluções e trocas (estorno)     | Cancelar/devolver venda estorna o estoque mantendo o registro; troca gera nova venda vinculada           |
+| Histórico do cliente              | Tela com todas as compras do cliente e o total comprado                                                    |
 
 ---
 
@@ -180,10 +184,11 @@ Em ambos os casos, acesse **http://localhost:3000** no navegador.
 
 ### Requisito 1 — CRUD de Clientes
 
-- Listar clientes com busca por nome/CPF e paginação configurável (5/10/20/50/100 itens)
+- Listar clientes com **busca dinâmica** por nome/CPF (filtra enquanto digita) e paginação configurável (5/10/20/50/100 itens)
 - Criar cliente com formulário validado
 - Editar cliente preservando dados preenchidos em caso de erro
-- Excluir cliente (bloqueado se houver vendas associadas)
+- **Inativar** cliente (soft delete): some das listagens, mas mantém o histórico; toggle "Mostrar inativos" e reativação
+- **Histórico do cliente**: tela com todas as compras e o total comprado
 
 ### Requisito 2 — CRUD de Peças de Roupa
 
@@ -194,11 +199,12 @@ Em ambos os casos, acesse **http://localhost:3000** no navegador.
 
 ### Requisito 3 — Gestão de Vendas
 
-- Abrir nova venda escolhendo cliente, data e forma de pagamento
+- Abrir nova venda escolhendo cliente (apenas ativos), data e forma de pagamento
 - Tela de detalhe com adição e remoção de itens em tempo real
 - Visualizar valor total atualizado a cada alteração
 - Finalizar venda (transição irreversível ABERTA → FINALIZADA)
-- Excluir venda aberta (restaura estoque de todos os itens)
+- **Cancelar** venda aberta e **devolver** venda finalizada — ambos com **estorno** de estoque, mantendo o registro (status CANCELADA/DEVOLVIDA)
+- **Troca**: devolve a venda finalizada e abre uma nova venda vinculada para as peças de troca
 - Listar vendas com filtros por status e período (data início/fim)
 
 ### Requisito 4 — Controle de Estoque

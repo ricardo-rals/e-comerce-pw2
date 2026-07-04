@@ -164,6 +164,35 @@ main {
   border-left: 4px solid var(--vermelho);
 }
 
+.alert-info {
+  background: #E0F2FE;
+  color: #075985;
+  border-left: 4px solid #0284C7;
+  padding: 0.75rem 1rem;
+  border-radius: var(--raio);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.texto-leve {
+  color: var(--texto-leve);
+}
+
+.campo-check {
+  flex-direction: row;
+  align-items: center;
+}
+
+.campo-check label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--texto);
+  cursor: pointer;
+}
+
 /* ── page header ──────────────────────────────────────────────────────────── */
 .page-header {
   display: flex;
